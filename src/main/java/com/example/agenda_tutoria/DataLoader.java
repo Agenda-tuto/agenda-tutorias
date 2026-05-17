@@ -215,7 +215,9 @@ public class DataLoader implements CommandLineRunner {
             t.setEstudianteNombre(est.getNombre());
             t.setProfesorId(prof.getId());
             t.setProfesorNombre(prof.getNombre());
-            t.setMateria(MATERIAS[RND.nextInt(MATERIAS.length)]);
+            t.setMateria(prof.getMaterias() != null && !prof.getMaterias().isEmpty()
+                    ? prof.getMaterias().get(RND.nextInt(prof.getMaterias().size()))
+                    : MATERIAS[RND.nextInt(MATERIAS.length)]);
             t.setTema(TEMAS[RND.nextInt(TEMAS.length)]);
             t.setFechaHora(LocalDateTime.now().minusDays(RND.nextInt(90)).plusHours(RND.nextInt(24)));
             t.setDuracionMin(List.of(30, 60, 90, 120).get(RND.nextInt(4)));
@@ -297,3 +299,4 @@ public class DataLoader implements CommandLineRunner {
         System.out.println("✅ Creado: " + nombre + " (" + rol + ")");
     }
 }
+

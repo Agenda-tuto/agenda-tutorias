@@ -189,22 +189,31 @@ public class DataLoader implements CommandLineRunner {
             // Seed tutorías masivas — siempre reseedear si hay menos de 100
             // o si detectamos materias mal asignadas (de una versión anterior)
             boolean reseedNeeded = false;
-            if (tutoriaRepository.count() >= 100) {
-                List<Tutoria> muestra = tutoriaRepository.findAll(
-                        PageRequest.of(0, 100)).getContent();
-                for (Tutoria t : muestra) {
-                    Usuario profe = profesores.stream()
-                            .filter(p -> p.getId().equals(t.getProfesorId()))
-                            .findFirst().orElse(null);
-                    if (profe != null && profe.getMaterias() != null && !profe.getMaterias().isEmpty()) {
-                        if (!profe.getMaterias().contains(t.getMateria())) {
-                            reseedNeeded = true;
-                            break;
+            long totalTutorias = tutoriaRepository.count();
+            if (totalTutorias >= 100) {
+                // Revisar TODAS las tutorías en lotes de 500 hasta encontrar una mal
+                int page = 0;
+                int pageSize = 500;
+                while (true) {
+                    List<Tutoria> batch = tutoriaRepository.findAll(
+                            PageRequest.of(page, pageSize)).getContent();
+                    if (batch.isEmpty()) break;
+                    for (Tutoria t : batch) {
+                        Usuario profe = profesores.stream()
+                                .filter(p -> p.getId().equals(t.getProfesorId()))
+                                .findFirst().orElse(null);
+                        if (profe != null && profe.getMaterias() != null && !profe.getMaterias().isEmpty()) {
+                            if (!profe.getMaterias().contains(t.getMateria())) {
+                                reseedNeeded = true;
+                                break;
+                            }
                         }
                     }
+                    if (reseedNeeded) break;
+                    page++;
                 }
             }
-            if (tutoriaRepository.count() < 100 || reseedNeeded) {
+            if (totalTutorias < 100 || reseedNeeded) {
                 System.out.println("🗑️ Limpiando datos antiguos para reseed...");
                 historialEstadoRepository.deleteAll();
                 pagoRepository.deleteAll();
@@ -322,5 +331,4 @@ public class DataLoader implements CommandLineRunner {
         System.out.println("✅ Creado: " + nombre + " (" + rol + ")");
     }
 }
-
 

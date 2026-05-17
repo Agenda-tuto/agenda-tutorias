@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestionar tutoría — Agenda Tutorías</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+3:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/styles.css}" rel="stylesheet">
+</head>
+
+<body>
+
+  <nav class="navbar-top" aria-label="Navegación principal">
+  <div class="navbar-left">
+    <a th:href="@{/profesor/dashboard}" class="navbar-brand" aria-label="Inicio tutor">
+      <img th:src="@{/img/logo.png}" alt="Comfenalco" onerror="this.style.display='none'">
+    </a>
+    <div class="navbar-sep-v"></div>
+    <nav class="navbar-nav-links">
+      <a th:href="@{/profesor/dashboard}" class="nav-link">Panel</a>
+      <a th:href="@{/profesor/retiros}" class="nav-link">
+        <i class="bi bi-cash-coin" aria-hidden="true"></i> Fondos
+      </a>
+    </nav>
+  </div>
+  <div class="navbar-right">
+    <div class="mode-pill" role="group" aria-label="Cambiar modo">
+      <a th:href="@{/estudiante/dashboard}" class="mode-pill-btn">
+        <i class="bi bi-mortarboard" aria-hidden="true"></i> Estudiante
+      </a>
+      <a th:href="@{/profesor/dashboard}" class="mode-pill-btn active" aria-current="page">
+        <i class="bi bi-person-workspace" aria-hidden="true"></i> Tutor
+      </a>
+    </div>
+    <a th:href="@{/notificaciones}" class="navbar-util-btn navbar-bell" aria-label="Notificaciones">
+      <i class="bi bi-bell" aria-hidden="true"></i>
+      <span th:if="${noLeidas > 0}" class="bell-badge" th:text="${noLeidas}" aria-label="sin leer"></span>
+    </a>
+    <div class="navbar-profile-menu">
+      <button class="profile-trigger" id="profileBtn"
+              aria-haspopup="true" aria-expanded="false" aria-controls="profileDropdown">
+        <div class="profile-avatar">
+          <span th:text="${#strings.substring(profesor.nombre, 0, 1)}">T</span>
+        </div>
+        <span class="profile-name" th:text="${#strings.abbreviate(profesor.nombre, 14)}">Tutor</span>
+        <i class="bi bi-chevron-down profile-chevron" aria-hidden="true"></i>
+      </button>
+      <div class="profile-dropdown" id="profileDropdown" role="menu">
+        <a th:href="@{/profesor/perfil}" class="dropdown-item" role="menuitem">
+          <i class="bi bi-person" aria-hidden="true"></i> Mi perfil
+        </a>
+        <div class="dropdown-divider"></div>
+        <a th:href="@{/logout}" class="dropdown-item dropdown-item-danger" role="menuitem">
+          <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Cerrar sesión
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-7">
+
+                <!-- Info de la tutoría -->
+                <div class="card-institucional mb-4">
+                    <div class="card-header-azul">
+                        <i class="bi bi-calendar3 me-2"></i>Detalle de la tutoría
+                    </div>
+                    <div class="p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <p
+                                    style="margin:0; font-size:0.8rem; color:#7f8c8d; text-transform:uppercase; letter-spacing:0.5px;">
+                                    Estudiante</p>
+                                <div style="display:flex; align-items:center; gap:10px; margin-top:6px;">
+                                    <div class="avatar-iniciales pequeno"
+                                        th:attr="data-avatar=${tutoria.estudianteNombre}"></div>
+                                    <p style="margin:0; font-weight:700; color:var(--azul);"
+                                        th:text="${tutoria.estudianteNombre}"></p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <p
+                                    style="margin:0; font-size:0.8rem; color:#7f8c8d; text-transform:uppercase; letter-spacing:0.5px;">
+                                    Materia</p>
+                                <p style="margin-top:6px; font-weight:700; color:var(--texto);"
+                                    th:text="${tutoria.materia}"></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p
+                                    style="margin:0; font-size:0.8rem; color:#7f8c8d; text-transform:uppercase; letter-spacing:0.5px;">
+                                    Fecha y hora</p>
+                                <p style="margin-top:6px; font-weight:600; color:var(--texto);"
+                                    th:text="${#temporals.format(tutoria.fechaHora, 'dd/MM/yyyy HH:mm')}"></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p
+                                    style="margin:0; font-size:0.8rem; color:#7f8c8d; text-transform:uppercase; letter-spacing:0.5px;">
+                                    Duración</p>
+                                <p style="margin-top:6px; font-weight:600; color:var(--texto);"
+                                    th:text="${tutoria.duracionMin} + ' minutos'"></p>
+                            </div>
+                            <div class="col-12" th:if="${tutoria.tema != null and !tutoria.tema.isEmpty()}">
+                                <p
+                                    style="margin:0; font-size:0.8rem; color:#7f8c8d; text-transform:uppercase; letter-spacing:0.5px;">
+                                    Descripción del tema</p>
+                                <p style="margin-top:6px; color:var(--texto);" th:text="${tutoria.tema}"></p>
+                            </div>
+                            <div class="col-12">
+                                <p
+                                    style="margin:0; font-size:0.8rem; color:#7f8c8d; text-transform:uppercase; letter-spacing:0.5px;">
+                                    Estado actual</p>
+                                <div style="margin-top:6px;">
+                                    <span class="badge-estado" th:classappend="${tutoria.estado.name() == 'PENDIENTE'    ? 'badge-pendiente' :
+                                                       tutoria.estado.name() == 'ACEPTADA'     ? 'badge-aceptada'  :
+                                                       tutoria.estado.name() == 'EN_CURSO'     ? 'badge-pendiente' :
+                                                       tutoria.estado.name() == 'FINALIZADA'   ? 'badge-aceptada'  :
+                                                       tutoria.estado.name() == 'EN_REVISION'  ? 'badge-pendiente' :
+                                                       tutoria.estado.name() == 'PAGADA'       ? 'badge-aceptada'  :
+                                                       tutoria.estado.name() == 'NO_ASISTIO'   ? 'badge-rechazada' :
+                                                       tutoria.estado.name() == 'EXPIRADA'     ? 'badge-rechazada' :
+                                                       tutoria.estado.name() == 'REPROGRAMADA' ? 'badge-pendiente' :
+                                                                                                  'badge-rechazada'}"
+                                        th:text="${tutoria.estado}"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════ ESTADO: PENDIENTE ══════ -->
+                <div th:if="${tutoria.estado.name() == 'PENDIENTE'}">
+
+                    <!-- Aceptar con link -->
+                    <div class="card-institucional mb-3">
+                        <div class="card-header-azul">
+                            <i class="bi bi-check-circle me-2"></i>Aceptar tutoría
+                        </div>
+                        <div class="p-4">
+                            <p style="color:#7f8c8d; font-size:0.9rem; margin-bottom:16px;">
+                                Al aceptar, el estudiante recibirá el link de la sesión y un mensaje tuyo.
+                            </p>
+                            <form th:action="@{/profesor/tutorias/{id}/aceptar(id=${tutoria.id})}" method="post">
+                                <div class="mb-3">
+                                    <label class="form-label">Mensaje para el estudiante</label>
+                                    <textarea name="mensaje" class="form-control" rows="3"
+                                        placeholder="Ej: ¡Hola! Te espero puntual. El link de Meet es: https://meet.google.com/xxx ..."></textarea>
+                                </div>
+                                <button type="submit" class="btn-primario">
+                                    <i class="bi bi-check-lg"></i>Aceptar tutoría
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Reprogramar -->
+                    <div class="card-institucional mb-3">
+                        <div class="card-header-azul">
+                            <i class="bi bi-calendar-event me-2"></i>Reprogramar tutoría
+                        </div>
+                        <div class="p-4">
+                            <p style="color:#7f8c8d; font-size:0.9rem; margin-bottom:16px;">
+                                Si no puedes en esa fecha, propón una nueva y el estudiante será notificado.
+                            </p>
+                            <form th:action="@{/profesor/tutorias/{id}/reprogramar(id=${tutoria.id})}" method="post">
+                                <div class="mb-3">
+                                    <label class="form-label">Nueva fecha y hora</label>
+                                    <input type="datetime-local" name="nuevaFecha" class="form-control" required>
+                                </div>
+                                <button type="submit" class="btn-secundario">
+                                    <i class="bi bi-calendar-event"></i>Reprogramar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Notificación personalizada -->
+                    <div class="card-institucional mb-3">
+                        <div class="card-header-azul">
+                            <i class="bi bi-bell me-2"></i>Enviar mensaje al estudiante
+                        </div>
+                        <div class="p-4">
+                            <p style="color:#7f8c8d; font-size:0.9rem; margin-bottom:16px;">
+                                Envía una notificación directa al estudiante sin cambiar el estado de la tutoría.
+                            </p>
+                            <form th:action="@{/profesor/tutorias/{id}/notificar(id=${tutoria.id})}" method="post">
+                                <div class="mb-3">
+                                    <label class="form-label">Mensaje</label>
+                                    <textarea name="mensaje" class="form-control" rows="3"
+                                        placeholder="Escribe tu mensaje aquí..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn-secundario">
+                                    <i class="bi bi-send"></i>Enviar mensaje
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Cancelar -->
+                    <div class="card-institucional">
+                        <div class="p-4">
+                            <p style="color:#7f8c8d; font-size:0.9rem; margin-bottom:16px;">
+                                ¿No puedes atender esta solicitud? Puedes cancelarla.
+                            </p>
+                            <form th:action="@{/profesor/tutorias/{id}/cancelar(id=${tutoria.id})}" method="post"
+                                onsubmit="return confirm('¿Seguro que quieres cancelar esta tutoría?')">
+                                <button type="submit" style="background:#fdecea;color:var(--rojo);border:1.5px solid var(--rojo);
+                                           border-radius:10px;padding:10px 20px;font-size:0.9rem;
+                                           font-weight:600;cursor:pointer;display:inline-flex;
+                                           align-items:center;gap:8px;">
+                                    <i class="bi bi-x-circle"></i>Cancelar tutoría
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ══════ ESTADO: REPROGRAMADA ══════ -->
+                <div th:if="${tutoria.estado.name() == 'REPROGRAMADA'}">
+
+                    <div class="alerta alerta-info mb-3">
+                        <i class="bi bi-calendar-event"></i>
+                        Esta tutoría fue reprogramada. El estudiante fue notificado de la nueva fecha.
+                    </div>
+
+                    <!-- Aceptar con link -->
+                    <div class="card-institucional mb-3">
+                        <div class="card-header-azul">
+                            <i class="bi bi-check-circle me-2"></i>Confirmar y aceptar
+                        </div>
+                        <div class="p-4">
+                            <form th:action="@{/profesor/tutorias/{id}/aceptar(id=${tutoria.id})}" method="post">
+                                <div class="mb-3">
+                                    <label class="form-label">Mensaje para el estudiante</label>
+                                    <textarea name="mensaje" class="form-control" rows="3"
+                                        placeholder="Ej: ¡Hola! Te espero puntual. El link de Meet es: https://meet.google.com/xxx ..."></textarea>
+                                </div>
+                                <button type="submit" class="btn-primario">
+                                    <i class="bi bi-check-lg"></i>Aceptar tutoría
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Mensaje -->
+                    <div class="card-institucional mb-3">
+                        <div class="card-header-azul">
+                            <i class="bi bi-bell me-2"></i>Enviar mensaje al estudiante
+                        </div>
+                        <div class="p-4">
+                            <form th:action="@{/profesor/tutorias/{id}/notificar(id=${tutoria.id})}" method="post">
+                                <div class="mb-3">
+                                    <label class="form-label">Mensaje</label>
+                                    <textarea name="mensaje" class="form-control" rows="3"
+                                        placeholder="Escribe tu mensaje aquí..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn-secundario">
+                                    <i class="bi bi-send"></i>Enviar mensaje
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Cancelar -->
+                    <div class="card-institucional">
+                        <div class="p-4">
+                            <form th:action="@{/profesor/tutorias/{id}/cancelar(id=${tutoria.id})}" method="post"
+                                onsubmit="return confirm('¿Seguro que quieres cancelar?')">
+                                <button type="submit" style="background:#fdecea;color:var(--rojo);border:1.5px solid var(--rojo);
+                                           border-radius:10px;padding:10px 20px;font-size:0.9rem;
+                                           font-weight:600;cursor:pointer;display:inline-flex;
+                                           align-items:center;gap:8px;">
+                                    <i class="bi bi-x-circle"></i>Cancelar tutoría
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ══════ ESTADO: ACEPTADA ══════ -->
+                <div th:if="${tutoria.estado.name() == 'ACEPTADA'}">
+
+                    <div class="alerta alerta-exito mb-3">
+                        <i class="bi bi-check-circle"></i>
+                        Tutoría aceptada. El estudiante fue notificado.
+                    </div>
+
+                    <!-- Mensaje enviado al estudiante -->
+                    <div class="card-institucional mb-3"
+                        th:if="${tutoria.mensajeTutor != null and !tutoria.mensajeTutor.isEmpty()}">
+                        <div class="card-header-azul">
+                            <i class="bi bi-chat-text me-2"></i>Mensaje enviado al estudiante
+                        </div>
+                        <div class="p-4">
+                            <p style="margin:0; color:var(--texto); font-style:italic;"
+                                th:text="${tutoria.mensajeTutor}"></p>
+                        </div>
+                    </div>
+
+                    <!-- Enviar otro mensaje -->
+                    <div class="card-institucional mb-3">
+                        <div class="card-header-azul">
+                            <i class="bi bi-bell me-2"></i>Enviar mensaje al estudiante
+                        </div>
+                        <div class="p-4">
+                            <p style="color:#7f8c8d; font-size:0.9rem; margin-bottom:16px;">
+                                Puedes enviarle el link de Meet, Zoom o cualquier información adicional.
+                            </p>
+                            <form th:action="@{/profesor/tutorias/{id}/notificar(id=${tutoria.id})}" method="post">
+                                <div class="mb-3">
+                                    <label class="form-label">Mensaje</label>
+                                    <textarea name="mensaje" class="form-control" rows="3"
+                                        placeholder="Ej: El link de la sesión es: https://meet.google.com/xxx ..."
+                                        required></textarea>
+                                </div>
+                                <button type="submit" class="btn-secundario">
+                                    <i class="bi bi-send"></i>Enviar mensaje
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- No asistió -->
+                    <div class="card-institucional mb-3">
+                        <div class="p-4"
+                            style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+                            <p style="margin:0; color:#7f8c8d; font-size:0.9rem;">
+                                ¿El estudiante no se presentó? Marca como no asistió y se reembolsará.
+                            </p>
+                            <form th:action="@{/profesor/tutorias/{id}/no-asistio(id=${tutoria.id})}" method="post"
+                                  onsubmit="return confirm('¿Confirmar que el estudiante no asistió? Se reembolsará el pago.')">
+                                <button type="submit" style="background:#fdecea;color:var(--rojo);border:1.5px solid var(--rojo);
+                                           border-radius:10px;padding:10px 20px;font-size:0.9rem;
+                                           font-weight:600;cursor:pointer;display:inline-flex;
+                                           align-items:center;gap:8px;">
+                                    <i class="bi bi-person-x"></i>No asistió
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Finalizar -->
+                    <div class="card-institucional">
+                        <div class="p-4"
+                            style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+                            <p style="margin:0; color:#7f8c8d; font-size:0.9rem;">
+                                ¿Ya terminó la sesión? Márcala como finalizada.
+                            </p>
+                            <form th:action="@{/profesor/tutorias/{id}/finalizar(id=${tutoria.id})}" method="post">
+                                <button type="submit" class="btn-primario">
+                                    <i class="bi bi-trophy"></i>Marcar como finalizada
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- ══════ ESTADO: ACEPTADA — iniciar sesión ══════ -->
+                <div th:if="${tutoria.estado.name() == 'ACEPTADA'}">
+                    <div class="card-institucional mb-3">
+                        <div class="p-4" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                            <div>
+                                <h5 style="margin:0 0 4px;color:var(--azul);font-family:'Merriweather',serif;">
+                                    <i class="bi bi-play-circle me-2"></i>Iniciar tutoría
+                                </h5>
+                                <p style="margin:0;color:#7f8c8d;font-size:0.88rem;">
+                                    Marca la tutoría como "en curso" cuando comience la sesión.
+                                </p>
+                            </div>
+                            <form th:action="@{/profesor/tutorias/{id}/iniciar(id=${tutoria.id})}" method="post">
+                                <button type="submit" class="btn-primario">
+                                    <i class="bi bi-play-fill"></i> Iniciar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════ ESTADO: EN_CURSO ══════ -->
+                <div th:if="${tutoria.estado.name() == 'EN_CURSO'}">
+                    <div class="alerta alerta-info mb-3">
+                        <i class="bi bi-play-circle"></i>
+                        Esta tutoría está en curso. Finalízala cuando termine la sesión.
+                    </div>
+                    <div class="card-institucional mb-3">
+                        <div class="p-4" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                            <p style="margin:0;color:#7f8c8d;font-size:0.9rem;">
+                                ¿El estudiante no se presentó? Marca como no asistió.
+                            </p>
+                            <form th:action="@{/profesor/tutorias/{id}/no-asistio(id=${tutoria.id})}" method="post"
+                                  onsubmit="return confirm('¿Confirmar que el estudiante no asistió? Se reembolsará.')">
+                                <button type="submit" style="background:#fdecea;color:var(--rojo);border:1.5px solid var(--rojo);
+                                           border-radius:10px;padding:10px 20px;font-size:0.9rem;
+                                           font-weight:600;cursor:pointer;display:inline-flex;
+                                           align-items:center;gap:8px;">
+                                    <i class="bi bi-person-x"></i> No asistió
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="card-institucional">
+                        <div class="p-4" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                            <p style="margin:0;color:#7f8c8d;font-size:0.9rem;">
+                                ¿La sesión terminó? Márcala como finalizada.
+                            </p>
+                            <form th:action="@{/profesor/tutorias/{id}/finalizar(id=${tutoria.id})}" method="post">
+                                <button type="submit" class="btn-primario">
+                                    <i class="bi bi-trophy"></i> Finalizar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════ ESTADO: FINALIZADA ══════ -->
+                <div th:if="${tutoria.estado.name() == 'FINALIZADA'}">
+
+                    <div class="alerta alerta-exito mb-3">
+                        <i class="bi bi-trophy"></i>
+                        Esta tutoría fue completada exitosamente.
+                    </div>
+
+                    <div class="card-institucional mb-3">
+                        <div class="p-4" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                            <div>
+                                <h5 style="margin:0 0 4px;color:var(--azul);font-family:'Merriweather',serif;">
+                                    <i class="bi bi-search me-2"></i>Enviar a revisión
+                                </h5>
+                                <p style="margin:0;color:#7f8c8d;font-size:0.88rem;">
+                                    Marca la tutoría para que el estudiante confirme y se libere el pago.
+                                </p>
+                            </div>
+                            <form th:action="@{/profesor/tutorias/{id}/en-revision(id=${tutoria.id})}" method="post">
+                                <button type="submit" class="btn-primario">
+                                    <i class="bi bi-send"></i> Enviar a revisión
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="card-institucional">
+                        <div class="p-4" style="text-align:center;">
+                            <i class="bi bi-check-circle-fill"
+                                style="font-size:3rem; color:#1e8449; margin-bottom:16px; display:block;"></i>
+                            <h5 style="color:var(--azul); font-family:'Merriweather',serif; margin-bottom:8px;">
+                                Tutoría completada
+                            </h5>
+                            <p style="color:#7f8c8d; margin-bottom:24px;">
+                                Puedes eliminarla del historial si ya no la necesitas.
+                            </p>
+                            <form th:action="@{/profesor/tutorias/{id}/eliminar(id=${tutoria.id})}" method="post"
+                                onsubmit="return confirm('¿Eliminar esta tutoría del historial?')">
+                                <button type="submit" style="background:#fdecea;color:var(--rojo);border:1.5px solid var(--rojo);
+                                           border-radius:10px;padding:10px 24px;font-size:0.9rem;
+                                           font-weight:600;cursor:pointer;display:inline-flex;
+                                           align-items:center;gap:8px;">
+                                    <i class="bi bi-trash3"></i>Eliminar del historial
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ══════ ESTADO: EN_REVISION, PAGADA, NO_ASISTIO, EXPIRADA ══════ -->
+                <div th:if="${tutoria.estado.name() == 'EN_REVISION'}">
+                    <div class="alerta alerta-info mb-3">
+                        <i class="bi bi-search"></i>
+                        Esta tutoría está en revisión. Esperando confirmación del estudiante.
+                    </div>
+                </div>
+                <div th:if="${tutoria.estado.name() == 'PAGADA'}">
+                    <div class="alerta alerta-exito mb-3">
+                        <i class="bi bi-check-circle"></i>
+                        Tutoría pagada correctamente.
+                    </div>
+                </div>
+                <div th:if="${tutoria.estado.name() == 'NO_ASISTIO'}">
+                    <div class="alerta alerta-error mb-3">
+                        <i class="bi bi-person-x"></i>
+                        El estudiante no asistió a la tutoría.
+                    </div>
+                </div>
+                <div th:if="${tutoria.estado.name() == 'EXPIRADA'}">
+                    <div class="alerta alerta-warning mb-3">
+                        <i class="bi bi-clock"></i>
+                        Esta tutoría ha expirado.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/avatar.js}"></script>
+</body>
+   <script>
+(function () {
+  /* Dropdown de perfil */
+  const btn  = document.getElementById('profileBtn');
+  const drop = document.getElementById('profileDropdown');
+  if (btn && drop) {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      const open = drop.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open);
+    });
+    document.addEventListener('click', function () {
+      drop.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    });
+    drop.addEventListener('click', function (e) { e.stopPropagation(); });
+  }
+
+  /* Marcar link activo según URL actual */
+  const path = window.location.pathname;
+  document.querySelectorAll('.nav-link').forEach(function (a) {
+    if (a.getAttribute('href') === path) a.classList.add('active');
+  });
+
+  /* Color de avatar por inicial */
+  const paleta = ['#1A6FA5','#1E8449','#D35400','#7D3C98','#C0392B','#117A65'];
+  document.querySelectorAll('.profile-avatar').forEach(function (av) {
+    const letra = av.textContent.trim() || 'U';
+    av.style.background = paleta[letra.charCodeAt(0) % paleta.length];
+  });
+})();
+</script>
+</html>

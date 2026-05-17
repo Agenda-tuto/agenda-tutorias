@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar Tutores — Agenda Tutorías</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/styles.css}" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar-top" aria-label="Navegación principal">
+  <div class="navbar-left">
+    <a th:href="@{/estudiante/dashboard}" class="navbar-brand" aria-label="Inicio">
+      <img th:src="@{/img/logo.png}" alt="Comfenalco" onerror="this.style.display='none'">
+    </a>
+    <div class="navbar-sep-v"></div>
+    <nav class="navbar-nav-links" aria-label="Secciones">
+      <a th:href="@{/estudiante/dashboard}" class="nav-link">Inicio</a>
+      <a th:href="@{/estudiante/tutores}" class="nav-link">
+        <i class="bi bi-search" aria-hidden="true"></i> Buscar tutor
+      </a>
+    </nav>
+  </div>
+  <div class="navbar-right">
+    <div class="mode-pill" role="group" aria-label="Cambiar modo">
+      <a th:href="@{/estudiante/dashboard}" class="mode-pill-btn active" aria-current="page">
+        <i class="bi bi-mortarboard" aria-hidden="true"></i> Estudiante
+      </a>
+      <a th:href="@{/profesor/dashboard}" class="mode-pill-btn">
+        <i class="bi bi-person-workspace" aria-hidden="true"></i> Tutor
+      </a>
+    </div>
+    <a th:href="@{/estudiante/billetera}" class="navbar-util-btn" aria-label="Mi billetera">
+      <i class="bi bi-wallet2" aria-hidden="true"></i>
+      <span th:text="'$' + ${#numbers.formatDecimal(usuario.balance ?: 0, 0, 'COMMA', 0, 'POINT')}">$0</span>
+    </a>
+    <a th:href="@{/notificaciones}" class="navbar-util-btn navbar-bell" aria-label="Notificaciones">
+      <i class="bi bi-bell" aria-hidden="true"></i>
+      <span th:if="${noLeidas > 0}" class="bell-badge" th:text="${noLeidas}" aria-label="sin leer"></span>
+    </a>
+    <div class="navbar-profile-menu">
+      <button class="profile-trigger" id="profileBtn"
+              aria-haspopup="true" aria-expanded="false" aria-controls="profileDropdown">
+        <div class="profile-avatar">
+          <span th:text="${#strings.substring(usuario.nombre, 0, 1)}">U</span>
+        </div>
+        <span class="profile-name" th:text="${#strings.abbreviate(usuario.nombre, 14)}">Usuario</span>
+        <i class="bi bi-chevron-down profile-chevron" aria-hidden="true"></i>
+      </button>
+      <div class="profile-dropdown" id="profileDropdown" role="menu">
+        <a th:href="@{/estudiante/perfil}" class="dropdown-item" role="menuitem">
+          <i class="bi bi-person" aria-hidden="true"></i> Mi perfil
+        </a>
+        <a th:href="@{/estudiante/solicitar-tutor}" class="dropdown-item" role="menuitem">
+          <i class="bi bi-person-check" aria-hidden="true"></i> Ser tutor
+        </a>
+        <div class="dropdown-divider"></div>
+        <a th:href="@{/logout}" class="dropdown-item dropdown-item-danger" role="menuitem">
+          <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Cerrar sesión
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid px-4 py-4">
+
+    <div class="mb-4">
+        <h2 style="font-family:'Merriweather',serif; color:var(--azul); font-size:1.5rem; margin-bottom:4px;">
+            Tutores disponibles
+        </h2>
+        <p style="color:#7f8c8d; margin:0;"
+           th:text="${tutores.size()} + ' tutores encontrados'"></p>
+    </div>
+
+    <!-- Buscador y filtros -->
+    <div style="background:white; border-radius:14px; box-shadow:var(--sombra); padding:20px; margin-bottom:24px;">
+        <form th:action="@{/estudiante/tutores}" method="get">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label">Buscar por nombre o especialidad</label>
+                    <div style="position:relative;">
+                        <i class="bi bi-search" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#aab;"></i>
+                        <input type="text" name="q" class="form-control"
+                               style="padding-left:40px;"
+                               placeholder="Ej: Programación, Juan..."
+                               th:value="${q}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Especialidad</label>
+                    <select name="especialidad" class="form-select">
+                        <option value="">Todas las especialidades</option>
+                        <option th:each="e : ${especialidades}"
+                                th:value="${e}" th:text="${e}"
+                                th:selected="${e == especialidadSeleccionada}"></option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Precio máx. / hora</label>
+                    <input type="number" name="precioMax" class="form-control"
+                           placeholder="Sin límite" step="5000" min="0"
+                           th:value="${precioMax}">
+                </div>
+                <div class="col-md-2" style="display:flex; gap:8px;">
+                    <button type="submit" class="btn-primario" style="flex:1; justify-content:center;">
+                        <i class="bi bi-search"></i>Buscar
+                    </button>
+                    <a th:href="@{/estudiante/tutores}"
+                       style="background:#f0f2f5; color:var(--texto); border:none; border-radius:10px;
+                              padding:11px 14px; text-decoration:none; display:flex; align-items:center;">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Sin resultados -->
+    <div th:if="${#lists.isEmpty(tutores)}" class="empty-state"
+         style="background:white; border-radius:14px; box-shadow:var(--sombra);">
+        <i class="bi bi-search"></i>
+        <p>No se encontraron tutores con esos criterios</p>
+        <a th:href="@{/estudiante/tutores}" class="btn-primario mt-3">
+            <i class="bi bi-arrow-counterclockwise"></i>Ver todos
+        </a>
+    </div>
+
+    <!-- Grid de tutores -->
+    <div class="row g-4" th:unless="${#lists.isEmpty(tutores)}">
+        <div class="col-md-4 col-lg-3" th:each="t : ${tutores}">
+            <div class="tutor-card">
+                <div class="tutor-header">
+                    <div class="tutor-avatar"><i class="bi bi-person-fill"></i></div>
+                    <div class="tutor-nombre" th:text="${t.nombre}"></div>
+                    <div class="tutor-especialidad"
+                         th:text="${t.especialidad ?: 'Sin especialidad'}"></div>
+                </div>
+                <div class="tutor-body">
+                    <div class="tutor-precio">
+                        $<span th:text="${t.precioPorHora != null ? t.precioPorHora : '0'}"></span>
+                        <span>/ hora</span>
+                    </div>
+                    <div class="estrellas">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-half"></i>
+                        <span style="color:#7f8c8d; font-size:0.82rem;"
+                              th:text="'(' + ${t.totalCalificaciones} + ' reseñas)'"></span>
+                    </div>
+                    <p class="tutor-desc"
+                       th:text="${t.descripcion != null ? t.descripcion : 'Tutor disponible para ayudarte en tus materias.'}"></p>
+                    <div th:if="${t.aniosExperiencia != null}"
+                         style="font-size:0.82rem; color:#7f8c8d; margin-bottom:8px;">
+                        <i class="bi bi-briefcase me-1"></i>
+                        <span th:text="${t.aniosExperiencia} + ' años de experiencia'"></span>
+                    </div>
+                </div>
+                <div class="tutor-footer" style="display:flex; gap:8px;">
+                    <a th:href="@{/estudiante/tutor/{id}(id=${t.id})}"
+                       class="btn-secundario" style="flex:1; justify-content:center; padding:8px; font-size:0.88rem;">
+                        Ver perfil
+                    </a>
+                    <a th:href="@{/estudiante/agendar/{id}(id=${t.id})}"
+                       class="btn-primario" style="flex:1; justify-content:center; padding:8px; font-size:0.88rem;">
+                        <i class="bi bi-calendar-plus"></i>Agendar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paginación simplificada -->
+    <div th:if="${totalPages > 1}" class="d-flex justify-content-center align-items-center gap-3 mt-4 mb-4">
+        <a th:if="${currentPage > 0}"
+           th:href="@{/estudiante/tutores(q=${q}, especialidad=${especialidadSeleccionada}, precioMax=${precioMax}, page=${currentPage - 1})}"
+           class="btn-primario" style="padding:6px 16px;font-size:0.82rem;">
+            <i class="bi bi-chevron-left"></i> Anterior
+        </a>
+        <span style="font-size:0.85rem;color:#7f8c8d;">
+            Página <strong style="color:var(--azul);" th:text="${currentPage + 1}"></strong>
+            de <strong th:text="${totalPages}"></strong>
+        </span>
+        <a th:if="${currentPage < totalPages - 1}"
+           th:href="@{/estudiante/tutores(q=${q}, especialidad=${especialidadSeleccionada}, precioMax=${precioMax}, page=${currentPage + 1})}"
+           class="btn-primario" style="padding:6px 16px;font-size:0.82rem;">
+            Siguiente <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
+
+    <script>
+(function () {
+  /* Dropdown de perfil */
+  const btn  = document.getElementById('profileBtn');
+  const drop = document.getElementById('profileDropdown');
+  if (btn && drop) {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      const open = drop.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open);
+    });
+    document.addEventListener('click', function () {
+      drop.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    });
+    drop.addEventListener('click', function (e) { e.stopPropagation(); });
+  }
+
+  /* Marcar link activo según URL actual */
+  const path = window.location.pathname;
+  document.querySelectorAll('.nav-link').forEach(function (a) {
+    if (a.getAttribute('href') === path) a.classList.add('active');
+  });
+
+  /* Color de avatar por inicial */
+  const paleta = ['#1A6FA5','#1E8449','#D35400','#7D3C98','#C0392B','#117A65'];
+  document.querySelectorAll('.profile-avatar').forEach(function (av) {
+    const letra = av.textContent.trim() || 'U';
+    av.style.background = paleta[letra.charCodeAt(0) % paleta.length];
+  });
+})();
+</script>
+</body>
+</html>

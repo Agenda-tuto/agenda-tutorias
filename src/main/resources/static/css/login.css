@@ -1,0 +1,206 @@
+/* ── Login específico ── */
+body {
+    min-height: 100vh;
+    display: flex;
+}
+
+.panel-izquierdo {
+    width: 55%;
+    background: var(--azul);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px;
+    position: relative;
+    overflow: hidden;
+}
+
+.panel-izquierdo::before {
+    content: '';
+    position: absolute;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    border: 80px solid rgba(255,255,255,0.04);
+    top: -150px; right: -150px;
+}
+
+.panel-izquierdo::after {
+    content: '';
+    position: absolute;
+    width: 350px; height: 350px;
+    border-radius: 50%;
+    border: 60px solid rgba(192,57,43,0.12);
+    bottom: -100px; left: -80px;
+}
+
+.logo-area {
+    text-align: center;
+    margin-bottom: 50px;
+    z-index: 1;
+}
+
+.logo-area img {
+    height: 54px;
+    filter: brightness(0) invert(1);
+    margin-bottom: 32px;
+}
+
+.logo-area h1 {
+    font-family: 'Merriweather', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: white;
+    line-height: 1.3;
+    margin-bottom: 16px;
+}
+
+.logo-area h1 span { color: #e8a09a; }
+
+.logo-area p {
+    color: rgba(255,255,255,0.65);
+    font-size: 1.05rem;
+    line-height: 1.7;
+    max-width: 380px;
+}
+
+.features {
+    margin-top: 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    z-index: 1;
+    width: 100%;
+    max-width: 380px;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 16px 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.feature-icon {
+    width: 40px; height: 40px;
+    background: var(--rojo);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+    color: white;
+}
+
+.feature-item p {
+    color: rgba(255,255,255,0.8);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.feature-item strong {
+    color: white;
+    display: block;
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+}
+
+.panel-derecho {
+    width: 45%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 50px;
+    background: var(--gris-claro);
+}
+
+.login-card { width: 100%; max-width: 400px; }
+
+.login-card .titulo { margin-bottom: 36px; }
+
+.login-card .titulo h2 {
+    font-family: 'Merriweather', serif;
+    font-size: 1.7rem;
+    color: var(--azul);
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.login-card .titulo p { color: #7f8c8d; font-size: 0.95rem; }
+
+.input-group .form-control {
+    border-right: none;
+    border-radius: 10px 0 0 10px;
+}
+
+.input-group-text {
+    background: white;
+    border: 1.5px solid var(--borde);
+    border-left: none;
+    border-radius: 0 10px 10px 0;
+    color: #aab;
+    cursor: pointer;
+}
+
+.btn-login {
+    background: var(--rojo);
+    color: white;
+    border: none;
+    border-radius: var(--radio);
+    padding: 13px;
+    font-size: 1rem;
+    font-weight: 600;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Source Sans 3', sans-serif;
+}
+
+.btn-login:hover {
+    background: var(--rojo-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(192,57,43,0.3);
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 24px 0;
+    color: #bbb;
+    font-size: 0.85rem;
+}
+
+.divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e8eaec;
+}
+
+.btn-registro {
+    display: block;
+    text-align: center;
+    background: transparent;
+    border: 1.5px solid var(--azul);
+    border-radius: var(--radio);
+    padding: 12px;
+    color: var(--azul);
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn-registro:hover { background: var(--azul); color: white; }
+
+@media (max-width: 768px) {
+    body { flex-direction: column; }
+    .panel-izquierdo { width: 100%; padding: 40px 24px; }
+    .panel-derecho { width: 100%; padding: 40px 24px; }
+    .features { display: none; }
+}

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil — Agenda Tutorías</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/styles.css}" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar-top" aria-label="Navegación principal">
+  <div class="navbar-left">
+    <a th:href="@{/profesor/dashboard}" class="navbar-brand" aria-label="Inicio tutor">
+      <img th:src="@{/img/logo.png}" alt="Comfenalco" onerror="this.style.display='none'">
+    </a>
+    <div class="navbar-sep-v"></div>
+    <nav class="navbar-nav-links">
+      <a th:href="@{/profesor/dashboard}" class="nav-link">Panel</a>
+      <a th:href="@{/profesor/retiros}" class="nav-link">
+        <i class="bi bi-cash-coin" aria-hidden="true"></i> Fondos
+      </a>
+    </nav>
+  </div>
+  <div class="navbar-right">
+    <div class="mode-pill" role="group" aria-label="Cambiar modo">
+      <a th:href="@{/estudiante/dashboard}" class="mode-pill-btn">
+        <i class="bi bi-mortarboard" aria-hidden="true"></i> Estudiante
+      </a>
+      <a th:href="@{/profesor/dashboard}" class="mode-pill-btn active" aria-current="page">
+        <i class="bi bi-person-workspace" aria-hidden="true"></i> Tutor
+      </a>
+    </div>
+    <a th:href="@{/notificaciones}" class="navbar-util-btn navbar-bell" aria-label="Notificaciones">
+      <i class="bi bi-bell" aria-hidden="true"></i>
+      <span th:if="${noLeidas > 0}" class="bell-badge" th:text="${noLeidas}" aria-label="sin leer"></span>
+    </a>
+    <div class="navbar-profile-menu">
+      <button class="profile-trigger" id="profileBtn"
+              aria-haspopup="true" aria-expanded="false" aria-controls="profileDropdown">
+        <div class="profile-avatar">
+          <span th:text="${#strings.substring(profesor.nombre, 0, 1)}">T</span>
+        </div>
+        <span class="profile-name" th:text="${#strings.abbreviate(profesor.nombre, 14)}">Tutor</span>
+        <i class="bi bi-chevron-down profile-chevron" aria-hidden="true"></i>
+      </button>
+      <div class="profile-dropdown" id="profileDropdown" role="menu">
+        <a th:href="@{/profesor/perfil}" class="dropdown-item" role="menuitem">
+          <i class="bi bi-person" aria-hidden="true"></i> Mi perfil
+        </a>
+        <div class="dropdown-divider"></div>
+        <a th:href="@{/logout}" class="dropdown-item dropdown-item-danger" role="menuitem">
+          <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Cerrar sesión
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+
+            <!-- Avatar y nombre -->
+            <div style="text-align:center; margin-bottom:28px;">
+                <div style="width:90px;height:90px;border-radius:50%;background:var(--azul);display:flex;align-items:center;justify-content:center;font-size:2.2rem;color:white;margin:0 auto 16px;">
+                    <i class="bi bi-person-fill"></i>
+                </div>
+                <h3 style="font-family:'Merriweather',serif; color:var(--azul);" th:text="${profesor.nombre}"></h3>
+                <span class="badge-estado badge-aceptada">Tutor activo</span>
+            </div>
+
+            <div th:if="${param.ok}" class="alerta alerta-exito">
+                <i class="bi bi-check-circle"></i>
+                Perfil actualizado correctamente.
+            </div>
+
+            <div class="card-institucional">
+                <div class="card-header-azul">
+                    <i class="bi bi-person-gear me-2"></i>Editar perfil
+                </div>
+                <div class="p-4">
+                    <form th:action="@{/profesor/perfil}" method="post" th:object="${profesor}">
+                        <div class="mb-3">
+                            <label class="form-label">Especialidad</label>
+                            <input type="text" th:field="*{especialidad}" class="form-control"
+                                   placeholder="Ej: Programación, Matemáticas, Física...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Descripción / Biografía</label>
+                            <textarea th:field="*{descripcion}" class="form-control" rows="4"
+                                      placeholder="Cuéntales a los estudiantes quién eres y cómo puedes ayudarlos..."></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Precio por hora ($)</label>
+                                <input type="number" th:field="*{precioPorHora}" class="form-control"
+                                       placeholder="25000" step="1000" min="0">
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label">Años de experiencia</label>
+                                <input type="number" th:field="*{aniosExperiencia}" class="form-control"
+                                       placeholder="0" min="0" max="50">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primario w-100 justify-content-center">
+                            <i class="bi bi-floppy"></i>Guardar cambios
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+   <script>
+(function () {
+  /* Dropdown de perfil */
+  const btn  = document.getElementById('profileBtn');
+  const drop = document.getElementById('profileDropdown');
+  if (btn && drop) {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      const open = drop.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open);
+    });
+    document.addEventListener('click', function () {
+      drop.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    });
+    drop.addEventListener('click', function (e) { e.stopPropagation(); });
+  }
+
+  /* Marcar link activo según URL actual */
+  const path = window.location.pathname;
+  document.querySelectorAll('.nav-link').forEach(function (a) {
+    if (a.getAttribute('href') === path) a.classList.add('active');
+  });
+
+  /* Color de avatar por inicial */
+  const paleta = ['#1A6FA5','#1E8449','#D35400','#7D3C98','#C0392B','#117A65'];
+  document.querySelectorAll('.profile-avatar').forEach(function (av) {
+    const letra = av.textContent.trim() || 'U';
+    av.style.background = paleta[letra.charCodeAt(0) % paleta.length];
+  });
+})();
+</script>
+</body>
+</html>

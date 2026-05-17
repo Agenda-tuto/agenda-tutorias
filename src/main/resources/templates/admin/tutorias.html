@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorías — Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/styles.css}" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar-top navbar-top-admin" aria-label="Panel de administración">
+  <div class="navbar-left">
+    <a th:href="@{/admin/dashboard}" class="navbar-brand" aria-label="Inicio admin">
+      <img th:src="@{/img/logo.png}" alt="Comfenalco" onerror="this.style.display='none'">
+      <span class="brand-role-tag">Admin</span>
+    </a>
+    <div class="navbar-sep-v"></div>
+    <nav class="navbar-nav-links">
+      <a th:href="@{/admin/dashboard}" class="nav-link">Dashboard</a>
+      <a th:href="@{/admin/usuarios}" class="nav-link">
+        <i class="bi bi-people" aria-hidden="true"></i> Usuarios
+      </a>
+      <a th:href="@{/admin/tutorias}" class="nav-link">
+        <i class="bi bi-calendar3" aria-hidden="true"></i> Tutorías
+        <span th:if="${enRevisionCount > 0}" class="nav-link-badge" th:text="${enRevisionCount}"></span>
+      </a>
+      <a th:href="@{/admin/retiros}" class="nav-link">
+        <i class="bi bi-cash-coin" aria-hidden="true"></i> Retiros
+      </a>
+      <a th:href="@{/admin/solicitudes-tutor}" class="nav-link">
+        <i class="bi bi-person-check" aria-hidden="true"></i> Solicitudes
+        <span th:if="${solicitudesPendientes > 0}" class="nav-link-badge" th:text="${solicitudesPendientes}"></span>
+      </a>
+    </nav>
+  </div>
+  <div class="navbar-right">
+    <a th:href="@{/logout}" class="btn-nav-danger-sm">
+      <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Salir
+    </a>
+  </div>
+</nav>
+
+<div class="container-fluid px-4 py-4">
+    <div th:if="${param.ok != null and param.ok[0] == 'pagada'}" class="alerta alerta-exito mb-3">
+        <i class="bi bi-check-circle"></i> Pago aprobado correctamente.
+    </div>
+    <div th:if="${param.ok != null and param.ok[0] == 'noasistio'}" class="alerta alerta-error mb-3">
+        <i class="bi bi-person-x"></i> Estudiante marcado como no asistió. Reembolso procesado.
+    </div>
+    <div th:if="${param.ok != null and param.ok[0] == 'expirada'}" class="alerta alerta-warning mb-3">
+        <i class="bi bi-clock"></i> Tutoría marcada como expirada.
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 style="font-family:'Merriweather',serif; color:var(--azul); font-size:1.5rem;">
+                <i class="bi bi-calendar3 me-2"></i>Gestión de tutorías
+            </h2>
+            <p style="color:#7f8c8d; margin:0;">Administra estados de tutorías</p>
+        </div>
+        <div>
+            <a th:href="@{/admin/tutorias}" class="btn-secundario" style="padding:6px 14px;font-size:0.85rem;">Todas</a>
+            <a th:href="@{/admin/tutorias(estado='EN_REVISION')}" class="btn-primario" style="padding:6px 14px;font-size:0.85rem;">
+                <i class="bi bi-search"></i> En revisión
+                <span th:if="${enRevisionCount > 0}" th:text="'(' + ${enRevisionCount} + ')'"></span>
+            </a>
+        </div>
+    </div>
+
+    <div class="card-institucional">
+        <div class="card-header-azul">
+            <i class="bi bi-list-check me-2"></i>Tutorías
+        </div>
+
+        <div th:if="${#lists.isEmpty(tutorias)}" class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <p>No hay tutorías</p>
+        </div>
+
+        <table th:unless="${#lists.isEmpty(tutorias)}" class="tabla-institucional">
+            <thead>
+                <tr>
+                    <th>Estudiante</th>
+                    <th>Tutor</th>
+                    <th>Materia</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="t : ${tutorias}">
+                    <td th:text="${t.estudianteNombre}"></td>
+                    <td th:text="${t.profesorNombre}"></td>
+                    <td th:text="${t.materia}"></td>
+                    <td th:text="${#temporals.format(t.fechaHora, 'dd/MM/yyyy HH:mm')}"></td>
+                    <td>
+                        <span class="badge-estado" th:classappend="${t.estado.name() == 'PENDIENTE'     ? 'badge-pendiente' :
+                                                       t.estado.name() == 'ACEPTADA'      ? 'badge-aceptada'  :
+                                                       t.estado.name() == 'EN_CURSO'      ? 'badge-pendiente' :
+                                                       t.estado.name() == 'FINALIZADA'    ? 'badge-aceptada'  :
+                                                       t.estado.name() == 'EN_REVISION'   ? 'badge-pendiente' :
+                                                       t.estado.name() == 'PAGADA'        ? 'badge-aceptada'  :
+                                                       t.estado.name() == 'NO_ASISTIO'    ? 'badge-rechazada' :
+                                                       t.estado.name() == 'EXPIRADA'      ? 'badge-rechazada' :
+                                                       t.estado.name() == 'RECHAZADA'     ? 'badge-rechazada' :
+                                                       t.estado.name() == 'REPROGRAMADA'  ? 'badge-pendiente' :
+                                                                                             'badge-cancelada'}"
+                              th:text="${t.estado}"></span>
+                    </td>
+                    <td>
+                        <!-- EN_REVISION: aprobar pago o no asistió -->
+                        <div th:if="${t.estado.name() == 'EN_REVISION'}" style="display:flex;gap:6px;">
+                            <form th:action="@{/admin/tutorias/{id}/aprobar-pago(id=${t.id})}" method="post">
+                                <button class="btn-primario" style="padding:5px 12px;font-size:0.78rem;">
+                                    <i class="bi bi-check-lg"></i> Pagada
+                                </button>
+                            </form>
+                            <form th:action="@{/admin/tutorias/{id}/no-asistio(id=${t.id})}" method="post"
+                                  onsubmit="return confirm('¿El estudiante no asistió? Se reembolsará.')">
+                                <button style="background:#fdecea;color:var(--rojo);border:none;border-radius:8px;padding:5px 12px;font-size:0.78rem;cursor:pointer;font-weight:600;">
+                                    <i class="bi bi-person-x"></i> No asistió
+                                </button>
+                            </form>
+                        </div>
+                        <!-- PENDIENTE/ACEPTADA: marcar expirada -->
+                        <div th:if="${t.estado.name() == 'PENDIENTE' or t.estado.name() == 'ACEPTADA' or t.estado.name() == 'EN_REVISION'}">
+                            <form th:action="@{/admin/tutorias/{id}/expirada(id=${t.id})}" method="post"
+                                  onsubmit="return confirm('¿Marcar como expirada?')">
+                                <button style="background:transparent;color:#bbb;border:1px solid #ddd;border-radius:8px;padding:5px 12px;font-size:0.78rem;cursor:pointer;">
+                                    <i class="bi bi-clock"></i> Expirada
+                                </button>
+                            </form>
+                        </div>
+                        <span th:if="${t.estado.name() == 'PAGADA' or t.estado.name() == 'NO_ASISTIO'
+                                 or t.estado.name() == 'EXPIRADA' or t.estado.name() == 'CANCELADA'
+                                 or t.estado.name() == 'RECHAZADA' or t.estado.name() == 'FINALIZADA'}"
+                              style="color:#bbb;font-size:0.85rem;">—</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <!-- Paginación -->
+        <div th:if="${totalPages > 1}" class="d-flex justify-content-center gap-2 p-3">
+            <a th:if="${currentPage > 0}"
+               th:href="@{/admin/tutorias(estado=${filtroEstado}, page=${currentPage - 1})}"
+               class="btn-primario" style="padding:6px 16px;font-size:0.82rem;">
+                <i class="bi bi-chevron-left"></i> Anterior
+            </a>
+            <span style="font-size:0.85rem;color:#7f8c8d;">
+                Página <strong style="color:var(--azul);" th:text="${currentPage + 1}"></strong>
+                de <strong th:text="${totalPages}"></strong>
+            </span>
+            <a th:if="${currentPage < totalPages - 1}"
+               th:href="@{/admin/tutorias(estado=${filtroEstado}, page=${currentPage + 1})}"
+               class="btn-primario" style="padding:6px 16px;font-size:0.82rem;">
+                Siguiente <i class="bi bi-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

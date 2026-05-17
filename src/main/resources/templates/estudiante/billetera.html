@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Billetera — Agenda Tutorías</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/styles.css}" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar-top" aria-label="Navegación principal">
+  <div class="navbar-left">
+    <a th:href="@{/estudiante/dashboard}" class="navbar-brand" aria-label="Inicio">
+      <img th:src="@{/img/logo.png}" alt="Comfenalco" onerror="this.style.display='none'">
+    </a>
+    <div class="navbar-sep-v"></div>
+    <nav class="navbar-nav-links" aria-label="Secciones">
+      <a th:href="@{/estudiante/dashboard}" class="nav-link">Inicio</a>
+      <a th:href="@{/estudiante/tutores}" class="nav-link">
+        <i class="bi bi-search" aria-hidden="true"></i> Buscar tutor
+      </a>
+    </nav>
+  </div>
+  <div class="navbar-right">
+    <div class="mode-pill" role="group" aria-label="Cambiar modo">
+      <a th:href="@{/estudiante/dashboard}" class="mode-pill-btn active" aria-current="page">
+        <i class="bi bi-mortarboard" aria-hidden="true"></i> Estudiante
+      </a>
+      <a th:href="@{/profesor/dashboard}" class="mode-pill-btn">
+        <i class="bi bi-person-workspace" aria-hidden="true"></i> Tutor
+      </a>
+    </div>
+    <a th:href="@{/estudiante/billetera}" class="navbar-util-btn" aria-label="Mi billetera">
+      <i class="bi bi-wallet2" aria-hidden="true"></i>
+      <span th:text="'$' + ${#numbers.formatDecimal(usuario.balance ?: 0, 0, 'COMMA', 0, 'POINT')}">$0</span>
+    </a>
+    <a th:href="@{/notificaciones}" class="navbar-util-btn navbar-bell" aria-label="Notificaciones">
+      <i class="bi bi-bell" aria-hidden="true"></i>
+      <span th:if="${noLeidas > 0}" class="bell-badge" th:text="${noLeidas}" aria-label="sin leer"></span>
+    </a>
+    <div class="navbar-profile-menu">
+      <button class="profile-trigger" id="profileBtn"
+              aria-haspopup="true" aria-expanded="false" aria-controls="profileDropdown">
+        <div class="profile-avatar">
+          <span th:text="${#strings.substring(usuario.nombre, 0, 1)}">U</span>
+        </div>
+        <span class="profile-name" th:text="${#strings.abbreviate(usuario.nombre, 14)}">Usuario</span>
+        <i class="bi bi-chevron-down profile-chevron" aria-hidden="true"></i>
+      </button>
+      <div class="profile-dropdown" id="profileDropdown" role="menu">
+        <a th:href="@{/estudiante/perfil}" class="dropdown-item" role="menuitem">
+          <i class="bi bi-person" aria-hidden="true"></i> Mi perfil
+        </a>
+        <a th:href="@{/estudiante/solicitar-tutor}" class="dropdown-item" role="menuitem">
+          <i class="bi bi-person-check" aria-hidden="true"></i> Ser tutor
+        </a>
+        <div class="dropdown-divider"></div>
+        <a th:href="@{/logout}" class="dropdown-item dropdown-item-danger" role="menuitem">
+          <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Cerrar sesión
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="container py-5">
+    <div class="row justify-content-center g-4">
+        <div class="col-md-8">
+
+            <!-- Balance -->
+            <div style="background:linear-gradient(135deg,var(--azul),var(--azul-medio));
+                        border-radius:16px; padding:36px; color:white;
+                        text-align:center; margin-bottom:24px;">
+                <i class="bi bi-wallet2" style="font-size:2.5rem; margin-bottom:12px; display:block; opacity:0.8;"></i>
+                <p style="color:rgba(255,255,255,0.7); margin-bottom:8px; font-size:0.95rem;">
+                    Balance disponible
+                </p>
+                <h2 style="font-family:'Merriweather',serif; font-size:2.5rem; margin:0;"
+                    th:text="'$' + ${#numbers.formatDecimal(usuario.balance ?: 0, 0, 'COMMA', 0, 'POINT')}">
+                </h2>
+            </div>
+
+            <!-- Alertas -->
+            <div th:if="${param.recargado}" class="alerta alerta-exito mb-3">
+                <i class="bi bi-check-circle"></i>
+                ¡Recarga exitosa! Tu saldo ha sido actualizado.
+            </div>
+            <div th:if="${param.error}" class="alerta alerta-error mb-3">
+                <i class="bi bi-exclamation-circle"></i>
+                El monto debe ser mayor a $0 y menor a $5.000.000.
+            </div>
+
+            <div class="row g-4">
+
+                <!-- Recargar -->
+                <div class="col-md-5">
+                    <div class="card-institucional">
+                        <div class="card-header-azul">
+                            <i class="bi bi-plus-circle me-2"></i>Recargar billetera
+                        </div>
+                        <div class="p-4">
+                            <p style="color:#7f8c8d; font-size:0.88rem; margin-bottom:16px;">
+                                Selecciona un monto o ingresa uno personalizado.
+                            </p>
+
+                            <!-- Montos rápidos -->
+                            <div style="display:grid; grid-template-columns:1fr 1fr;
+                                        gap:8px; margin-bottom:16px;">
+                                <button onclick="setMonto(20000)" class="btn-monto">$20.000</button>
+                                <button onclick="setMonto(50000)" class="btn-monto">$50.000</button>
+                                <button onclick="setMonto(100000)" class="btn-monto">$100.000</button>
+                                <button onclick="setMonto(200000)" class="btn-monto">$200.000</button>
+                            </div>
+
+                            <form th:action="@{/estudiante/billetera/recargar}" method="post">
+                                <div class="mb-3">
+                                    <label class="form-label">Monto personalizado</label>
+                                    <input type="number" name="monto" id="montoInput"
+                                           class="form-control" placeholder="0"
+                                           min="1000" max="5000000" step="1000" required>
+                                </div>
+                                <button type="submit" class="btn-primario w-100 justify-content-center">
+                                    <i class="bi bi-plus-circle"></i>Recargar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Historial de transacciones -->
+                <div class="col-md-7">
+                    <div class="card-institucional">
+                        <div class="card-header-azul">
+                            <i class="bi bi-clock-history me-2"></i>Historial de transacciones
+                        </div>
+
+                        <div th:if="${#lists.isEmpty(transacciones)}" class="empty-state">
+                            <i class="bi bi-receipt"></i>
+                            <p>No tienes transacciones aún</p>
+                        </div>
+
+                        <div th:unless="${#lists.isEmpty(transacciones)}">
+                            <div th:each="tx : ${transacciones}" class="notif-item">
+                                <div class="notif-icono"
+                                     th:classappend="${tx.tipo.name() == 'RECARGA'  ? 'verde'  :
+                                                      tx.tipo.name() == 'INGRESO'  ? 'verde'  :
+                                                      tx.tipo.name() == 'PAGO'     ? 'rojo'   :
+                                                      tx.tipo.name() == 'RETIRO'   ? 'naranja': 'azul'}">
+                                    <i th:class="${tx.tipo.name() == 'RECARGA'  ? 'bi bi-plus-circle-fill'  :
+                                                   tx.tipo.name() == 'INGRESO'  ? 'bi bi-arrow-down-circle-fill' :
+                                                   tx.tipo.name() == 'PAGO'     ? 'bi bi-arrow-up-circle-fill'  :
+                                                   tx.tipo.name() == 'RETIRO'   ? 'bi bi-cash-coin' :
+                                                                                   'bi bi-percent'}"></i>
+                                </div>
+                                <div class="notif-texto" style="flex:1;">
+                                    <p style="font-weight:600;" th:text="${tx.descripcion}"></p>
+                                    <small th:text="${#temporals.format(tx.fecha, 'dd/MM/yyyy HH:mm')}"></small>
+                                </div>
+                                <div style="text-align:right; flex-shrink:0;">
+                                    <p style="margin:0; font-weight:700;"
+                                       th:style="${tx.tipo.name() == 'PAGO' or tx.tipo.name() == 'RETIRO'
+                                           ? 'color:var(--rojo)' : 'color:#1e8449'}"
+                                       th:text="${(tx.tipo.name() == 'PAGO' or tx.tipo.name() == 'RETIRO' ? '-' : '+') +
+                                                  '$' + #numbers.formatDecimal(tx.monto, 0, 'COMMA', 0, 'POINT')}">
+                                    </p>
+                                    <small class="badge-estado"
+                                           th:classappend="${tx.estado.name() == 'COMPLETADA' ? 'badge-aceptada' : 'badge-pendiente'}"
+                                           th:text="${tx.estado}"
+                                           style="font-size:0.7rem;"></small>
+                                </div>
+                            </div>
+                            <!-- Paginación -->
+                            <div th:if="${totalPages > 1}" class="d-flex justify-content-center gap-2 p-3">
+                                <a th:if="${currentPage > 0}"
+                                   th:href="@{/estudiante/billetera(page=${currentPage - 1})}"
+                                   class="btn-primario" style="padding:6px 16px;font-size:0.82rem;">
+                                    <i class="bi bi-chevron-left"></i> Anterior
+                                </a>
+                                <span style="font-size:0.85rem;color:#7f8c8d;">
+                                    Página <strong style="color:var(--azul);" th:text="${currentPage + 1}"></strong>
+                                    de <strong th:text="${totalPages}"></strong>
+                                </span>
+                                <a th:if="${currentPage < totalPages - 1}"
+                                   th:href="@{/estudiante/billetera(page=${currentPage + 1})}"
+                                   class="btn-primario" style="padding:6px 16px;font-size:0.82rem;">
+                                    Siguiente <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.btn-monto {
+    background: rgba(26,58,92,0.07);
+    color: var(--azul);
+    border: 1.5px solid rgba(26,58,92,0.15);
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Source Sans 3', sans-serif;
+}
+.btn-monto:hover {
+    background: var(--azul);
+    color: white;
+    border-color: var(--azul);
+}
+</style>
+
+<script>
+function setMonto(valor) {
+    document.getElementById('montoInput').value = valor;
+}
+</script>
+    <script>
+(function () {
+  /* Dropdown de perfil */
+  const btn  = document.getElementById('profileBtn');
+  const drop = document.getElementById('profileDropdown');
+  if (btn && drop) {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      const open = drop.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open);
+    });
+    document.addEventListener('click', function () {
+      drop.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    });
+    drop.addEventListener('click', function (e) { e.stopPropagation(); });
+  }
+
+  /* Marcar link activo según URL actual */
+  const path = window.location.pathname;
+  document.querySelectorAll('.nav-link').forEach(function (a) {
+    if (a.getAttribute('href') === path) a.classList.add('active');
+  });
+
+  /* Color de avatar por inicial */
+  const paleta = ['#1A6FA5','#1E8449','#D35400','#7D3C98','#C0392B','#117A65'];
+  document.querySelectorAll('.profile-avatar').forEach(function (av) {
+    const letra = av.textContent.trim() || 'U';
+    av.style.background = paleta[letra.charCodeAt(0) % paleta.length];
+  });
+})();
+</script>
+</body>
+</html>

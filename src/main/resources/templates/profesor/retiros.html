@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Fondos — Agenda Tutorías</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/styles.css}" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar-top" aria-label="Navegación principal">
+  <div class="navbar-left">
+    <a th:href="@{/profesor/dashboard}" class="navbar-brand" aria-label="Inicio tutor">
+      <img th:src="@{/img/logo.png}" alt="Comfenalco" onerror="this.style.display='none'">
+    </a>
+    <div class="navbar-sep-v"></div>
+    <nav class="navbar-nav-links">
+      <a th:href="@{/profesor/dashboard}" class="nav-link">Panel</a>
+      <a th:href="@{/profesor/retiros}" class="nav-link">
+        <i class="bi bi-cash-coin" aria-hidden="true"></i> Fondos
+      </a>
+    </nav>
+  </div>
+  <div class="navbar-right">
+    <div class="mode-pill" role="group" aria-label="Cambiar modo">
+      <a th:href="@{/estudiante/dashboard}" class="mode-pill-btn">
+        <i class="bi bi-mortarboard" aria-hidden="true"></i> Estudiante
+      </a>
+      <a th:href="@{/profesor/dashboard}" class="mode-pill-btn active" aria-current="page">
+        <i class="bi bi-person-workspace" aria-hidden="true"></i> Tutor
+      </a>
+    </div>
+    <a th:href="@{/notificaciones}" class="navbar-util-btn navbar-bell" aria-label="Notificaciones">
+      <i class="bi bi-bell" aria-hidden="true"></i>
+      <span th:if="${noLeidas > 0}" class="bell-badge" th:text="${noLeidas}" aria-label="sin leer"></span>
+    </a>
+    <div class="navbar-profile-menu">
+      <button class="profile-trigger" id="profileBtn"
+              aria-haspopup="true" aria-expanded="false" aria-controls="profileDropdown">
+        <div class="profile-avatar">
+          <span th:text="${#strings.substring(profesor.nombre, 0, 1)}">T</span>
+        </div>
+        <span class="profile-name" th:text="${#strings.abbreviate(profesor.nombre, 14)}">Tutor</span>
+        <i class="bi bi-chevron-down profile-chevron" aria-hidden="true"></i>
+      </button>
+      <div class="profile-dropdown" id="profileDropdown" role="menu">
+        <a th:href="@{/profesor/perfil}" class="dropdown-item" role="menuitem">
+          <i class="bi bi-person" aria-hidden="true"></i> Mi perfil
+        </a>
+        <div class="dropdown-divider"></div>
+        <a th:href="@{/logout}" class="dropdown-item dropdown-item-danger" role="menuitem">
+          <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Cerrar sesión
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="container py-5">
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-9">
+
+            <!-- Balance -->
+            <div style="background:linear-gradient(135deg,var(--azul),var(--azul-medio));
+                        border-radius:16px; padding:36px; color:white;
+                        text-align:center; margin-bottom:24px;">
+                <i class="bi bi-cash-coin" style="font-size:2.5rem; margin-bottom:12px; display:block; opacity:0.8;"></i>
+                <p style="color:rgba(255,255,255,0.7); margin-bottom:8px;">Balance disponible</p>
+                <h2 style="font-family:'Merriweather',serif; font-size:2.5rem; margin:0;"
+                    th:text="'$' + ${#numbers.formatDecimal(profesor.balance ?: 0, 0, 'COMMA', 0, 'POINT')}"></h2>
+                <p style="color:rgba(255,255,255,0.6); font-size:0.82rem; margin-top:8px;">
+                    Comisión plataforma 10% ya descontada
+                </p>
+            </div>
+
+            <!-- Alertas -->
+            <div th:if="${param.ok}" class="alerta alerta-exito mb-3">
+                <i class="bi bi-check-circle"></i>
+                Solicitud de retiro enviada. El administrador la procesará pronto.
+            </div>
+            <div th:if="${param.error != null and param.error[0] == 'saldo'}"
+                 class="alerta alerta-error mb-3">
+                <i class="bi bi-exclamation-circle"></i>
+                Monto inválido o saldo insuficiente.
+            </div>
+
+            <div class="row g-4">
+
+                <!-- Solicitar retiro -->
+                <div class="col-md-5">
+                    <div class="card-institucional">
+                        <div class="card-header-azul">
+                            <i class="bi bi-cash-coin me-2"></i>Solicitar retiro
+                        </div>
+                        <div class="p-4">
+                            <p style="color:#7f8c8d; font-size:0.88rem; margin-bottom:16px;">
+                                El administrador procesará tu solicitud en 1-3 días hábiles.
+                            </p>
+
+                            <!-- Montos rápidos -->
+                            <div style="display:grid; grid-template-columns:1fr 1fr;
+                                        gap:8px; margin-bottom:16px;">
+                                <button onclick="setMonto(50000)" class="btn-monto">$50.000</button>
+                                <button onclick="setMonto(100000)" class="btn-monto">$100.000</button>
+                                <button onclick="setMonto(200000)" class="btn-monto">$200.000</button>
+                                <button onclick="setMonto(500000)" class="btn-monto">$500.000</button>
+                            </div>
+
+                            <form th:action="@{/profesor/retiros/solicitar}" method="post">
+                                <div class="mb-3">
+                                    <label class="form-label">Monto a retirar</label>
+                                    <input type="number" name="monto" id="montoInput"
+                                           class="form-control" placeholder="0"
+                                           min="10000" step="1000" required>
+                                </div>
+                                <button type="submit" class="btn-primario w-100 justify-content-center">
+                                    <i class="bi bi-arrow-up-circle"></i>Solicitar retiro
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Historial de solicitudes -->
+                    <div class="card-institucional mt-4"
+                         th:unless="${#lists.isEmpty(retiros)}">
+                        <div class="card-header-azul">
+                            <i class="bi bi-list-check me-2"></i>Mis solicitudes
+                        </div>
+                        <div th:each="r : ${retiros}" class="notif-item">
+                            <div class="notif-icono"
+                                 th:classappend="${r.estado.name() == 'APROBADO' ? 'verde' :
+                                                  r.estado.name() == 'RECHAZADO' ? 'rojo' : 'naranja'}">
+                                <i th:class="${r.estado.name() == 'APROBADO' ? 'bi bi-check-circle-fill' :
+                                               r.estado.name() == 'RECHAZADO' ? 'bi bi-x-circle-fill' :
+                                                                                 'bi bi-hourglass-split'}"></i>
+                            </div>
+                            <div class="notif-texto" style="flex:1;">
+                                <p style="font-weight:700;"
+                                   th:text="'$' + ${#numbers.formatDecimal(r.monto, 0, 'COMMA', 0, 'POINT')}"></p>
+                                <small th:text="${#temporals.format(r.fecha, 'dd/MM/yyyy')}"></small>
+                            </div>
+                            <span class="badge-estado"
+                                  th:classappend="${r.estado.name() == 'APROBADO' ? 'badge-aceptada' :
+                                                   r.estado.name() == 'RECHAZADO' ? 'badge-rechazada' :
+                                                                                     'badge-pendiente'}"
+                                  th:text="${r.estado}" style="font-size:0.72rem;"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Historial de transacciones -->
+                <div class="col-md-7">
+                    <div class="card-institucional">
+                        <div class="card-header-azul">
+                            <i class="bi bi-clock-history me-2"></i>Historial de ingresos
+                        </div>
+
+                        <div th:if="${#lists.isEmpty(transacciones)}" class="empty-state">
+                            <i class="bi bi-receipt"></i>
+                            <p>No tienes transacciones aún</p>
+                        </div>
+
+                        <div th:unless="${#lists.isEmpty(transacciones)}">
+                            <div th:each="tx : ${transacciones}" class="notif-item">
+                                <div class="notif-icono"
+                                     th:classappend="${tx.tipo.name() == 'INGRESO' ? 'verde' :
+                                                      tx.tipo.name() == 'RETIRO'  ? 'naranja' : 'azul'}">
+                                    <i th:class="${tx.tipo.name() == 'INGRESO' ? 'bi bi-arrow-down-circle-fill' :
+                                                   tx.tipo.name() == 'RETIRO'  ? 'bi bi-arrow-up-circle-fill' :
+                                                                                  'bi bi-cash'}"></i>
+                                </div>
+                                <div class="notif-texto" style="flex:1;">
+                                    <p style="font-weight:600;" th:text="${tx.descripcion}"></p>
+                                    <small th:text="${#temporals.format(tx.fecha, 'dd/MM/yyyy HH:mm')}"></small>
+                                </div>
+                                <div style="text-align:right;">
+                                    <p style="margin:0; font-weight:700;"
+                                       th:style="${tx.tipo.name() == 'RETIRO' ? 'color:var(--rojo)' : 'color:#1e8449'}"
+                                       th:text="${(tx.tipo.name() == 'RETIRO' ? '-' : '+') +
+                                                  '$' + #numbers.formatDecimal(tx.monto, 0, 'COMMA', 0, 'POINT')}">
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.btn-monto {
+    background: rgba(26,58,92,0.07);
+    color: var(--azul);
+    border: 1.5px solid rgba(26,58,92,0.15);
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Source Sans 3', sans-serif;
+}
+.btn-monto:hover { background: var(--azul); color: white; border-color: var(--azul); }
+</style>
+
+<script>
+function setMonto(valor) {
+    document.getElementById('montoInput').value = valor;
+}
+</script>
+   <script>
+(function () {
+  /* Dropdown de perfil */
+  const btn  = document.getElementById('profileBtn');
+  const drop = document.getElementById('profileDropdown');
+  if (btn && drop) {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      const open = drop.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open);
+    });
+    document.addEventListener('click', function () {
+      drop.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    });
+    drop.addEventListener('click', function (e) { e.stopPropagation(); });
+  }
+
+  /* Marcar link activo según URL actual */
+  const path = window.location.pathname;
+  document.querySelectorAll('.nav-link').forEach(function (a) {
+    if (a.getAttribute('href') === path) a.classList.add('active');
+  });
+
+  /* Color de avatar por inicial */
+  const paleta = ['#1A6FA5','#1E8449','#D35400','#7D3C98','#C0392B','#117A65'];
+  document.querySelectorAll('.profile-avatar').forEach(function (av) {
+    const letra = av.textContent.trim() || 'U';
+    av.style.background = paleta[letra.charCodeAt(0) % paleta.length];
+  });
+})();
+</script>
+</body>
+</html>

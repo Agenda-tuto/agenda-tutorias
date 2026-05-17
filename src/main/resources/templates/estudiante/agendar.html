@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendar Tutoría — Agenda Tutorías</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/styles.css}" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar-top" aria-label="Navegación principal">
+    <div class="navbar-left">
+        <a th:href="@{/estudiante/dashboard}" class="navbar-brand" aria-label="Inicio">
+            <img th:src="@{/img/logo.png}" alt="Comfenalco" onerror="this.style.display='none'">
+        </a>
+        <div class="navbar-sep-v"></div>
+        <nav class="navbar-nav-links" aria-label="Secciones">
+            <a th:href="@{/estudiante/dashboard}" class="nav-link">Inicio</a>
+            <a th:href="@{/estudiante/tutores}" class="nav-link">
+                <i class="bi bi-search" aria-hidden="true"></i> Buscar tutor
+            </a>
+        </nav>
+    </div>
+    <div class="navbar-right">
+        <div class="mode-pill" role="group" aria-label="Cambiar modo">
+            <a th:href="@{/estudiante/dashboard}" class="mode-pill-btn active" aria-current="page">
+                <i class="bi bi-mortarboard" aria-hidden="true"></i> Estudiante
+            </a>
+            <a th:href="@{/profesor/dashboard}" class="mode-pill-btn">
+                <i class="bi bi-person-workspace" aria-hidden="true"></i> Tutor
+            </a>
+        </div>
+        <a th:href="@{/estudiante/billetera}" class="navbar-util-btn" aria-label="Mi billetera">
+            <i class="bi bi-wallet2" aria-hidden="true"></i>
+            <span th:text="'$' + ${#numbers.formatDecimal(usuario.balance ?: 0, 0, 'COMMA', 0, 'POINT')}">$0</span>
+        </a>
+        <a th:href="@{/notificaciones}" class="navbar-util-btn navbar-bell" aria-label="Notificaciones">
+            <i class="bi bi-bell" aria-hidden="true"></i>
+            <span th:if="${noLeidas > 0}" class="bell-badge" th:text="${noLeidas}"></span>
+        </a>
+        <div class="navbar-profile-menu">
+            <button class="profile-trigger" id="profileBtn"
+                    aria-haspopup="true" aria-expanded="false" aria-controls="profileDropdown">
+                <div class="profile-avatar">
+                    <span th:text="${#strings.substring(usuario.nombre, 0, 1)}">U</span>
+                </div>
+                <span class="profile-name" th:text="${#strings.abbreviate(usuario.nombre, 14)}">Usuario</span>
+                <i class="bi bi-chevron-down profile-chevron" aria-hidden="true"></i>
+            </button>
+            <div class="profile-dropdown" id="profileDropdown" role="menu">
+                <a th:href="@{/estudiante/perfil}" class="dropdown-item" role="menuitem">
+                    <i class="bi bi-person" aria-hidden="true"></i> Mi perfil
+                </a>
+                <a th:href="@{/estudiante/solicitar-tutor}" class="dropdown-item" role="menuitem">
+                    <i class="bi bi-person-check" aria-hidden="true"></i> Ser tutor
+                </a>
+                <div class="dropdown-divider"></div>
+                <a th:href="@{/logout}" class="dropdown-item dropdown-item-danger" role="menuitem">
+                    <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Cerrar sesión
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+<!-- CORRECCIÓN: eliminado el </nav> duplicado que estaba aquí -->
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <!-- Alertas -->
+            <div th:if="${param.saldoInsuficiente}" class="alerta alerta-error mb-3">
+                <i class="bi bi-exclamation-triangle"></i>
+                Saldo insuficiente.
+                <a th:href="@{/estudiante/billetera}"
+                   style="color:var(--rojo); font-weight:700;">Recarga tu billetera</a>
+            </div>
+            <div th:if="${param.error == 'fechaMinima'}" class="alerta alerta-warning mb-3">
+                <i class="bi bi-clock"></i>
+                La tutoría debe agendarse con al menos <strong>24 horas</strong> de anticipación.
+            </div>
+            <div th:if="${param.error == 'horario'}" class="alerta alerta-warning mb-3">
+                <i class="bi bi-clock"></i>
+                El horario disponible es de <strong>7:00 a 20:00</strong>. Elige una hora dentro de ese rango.
+            </div>
+
+            <!-- Info del tutor -->
+            <div class="card-institucional mb-4">
+                <div class="tutor-header">
+                    <div class="tutor-avatar avatar-iniciales"
+                         data-avatar th:attr="data-avatar=${profesor.nombre}"
+                         style="margin:0 auto 12px;"></div>
+                    <div class="tutor-nombre" th:text="${profesor.nombre}"></div>
+                    <div class="tutor-especialidad"
+                         th:text="${profesor.especialidad ?: 'Tutor'}"></div>
+                </div>
+                <div class="tutor-body"
+                     style="flex-direction:row; align-items:center; justify-content:space-between;">
+                    <div>
+                        <div class="tutor-precio">
+                            $<span th:text="${profesor.precioPorHora != null
+                                ? #numbers.formatDecimal(profesor.precioPorHora,0,'COMMA',0,'POINT')
+                                : '0'}"></span>
+                            <span>/ hora</span>
+                        </div>
+                    </div>
+                    <div style="text-align:right; font-size:0.85rem; color:#7f8c8d;">
+                        <i class="bi bi-wallet2 me-1"></i>Tu saldo:
+                        <strong style="color:var(--azul);">
+                            $<span th:text="${#numbers.formatDecimal(balanceEstudiante,0,'COMMA',0,'POINT')}"></span>
+                        </strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario -->
+            <div class="card-institucional">
+                <div class="card-header-azul">
+                    <i class="bi bi-calendar-plus me-2"></i>Solicitar tutoría
+                </div>
+                <div class="p-4">
+                    <form th:action="@{/estudiante/agendar/{id}(id=${profesor.id})}"
+                          method="post" th:object="${tutoria}" id="formAgendar">
+                        <div class="mb-3">
+                            <label class="form-label">Materia</label>
+                            <input type="text" th:field="*{materia}" class="form-control"
+                                   placeholder="Ej: Cálculo, Programación..." required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Descripción del tema</label>
+                            <textarea th:field="*{tema}" class="form-control" rows="3"
+                                      placeholder="¿En qué necesitas ayuda específicamente?"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Fecha y hora</label>
+                            <input type="datetime-local" th:field="*{fechaHora}"
+                                   class="form-control" required
+                                   id="fechaHoraInput">
+                            <small style="color:#95a5a6;font-size:0.78rem;">
+                                Mínimo 24 horas desde ahora. Horario: 7:00 a 20:00.
+                            </small>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Duración</label>
+                            <select th:field="*{duracionMin}" class="form-select"
+                                    onchange="calcularCosto(this.value)">
+                                <option value="30">30 minutos</option>
+                                <option value="60" selected>1 hora</option>
+                                <option value="90">1 hora 30 min</option>
+                                <option value="120">2 horas</option>
+                            </select>
+                        </div>
+
+                        <!-- Resumen de pago -->
+                        <div style="background:#f8f9fa; border-radius:12px;
+                                    padding:16px; margin-bottom:20px;">
+                            <p style="font-size:0.82rem; color:#7f8c8d;
+                                      text-transform:uppercase; letter-spacing:0.5px;
+                                      margin-bottom:12px; font-weight:600;">
+                                Resumen del pago
+                            </p>
+                            <div style="display:flex; justify-content:space-between;
+                                        padding:6px 0; border-bottom:1px solid #eee;">
+                                <span style="font-size:0.9rem; color:#7f8c8d;">Precio por hora</span>
+                                <span style="font-weight:600;"
+                                      th:text="'$' + ${#numbers.formatDecimal(profesor.precioPorHora ?: 0, 0,'COMMA',0,'POINT')}"></span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between;
+                                        padding:6px 0; border-bottom:1px solid #eee;">
+                                <span style="font-size:0.9rem; color:#7f8c8d;">Duración</span>
+                                <span id="duracionTexto" style="font-weight:600;">1 hora</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between;
+                                        padding:6px 0; border-bottom:1px solid #eee;">
+                                <span style="font-size:0.9rem; color:#7f8c8d;">
+                                    Comisión plataforma (10%)
+                                </span>
+                                <span id="comisionTexto" style="font-weight:600; color:#d35400;"></span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between;
+                                        padding:10px 0 0;">
+                                <span style="font-weight:700; color:var(--azul);">Total a pagar</span>
+                                <span id="totalTexto"
+                                      style="font-weight:700; font-size:1.1rem; color:var(--rojo);"></span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-primario w-100 justify-content-center">
+                            <i class="bi bi-lock"></i> Confirmar y pagar
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // Calcular fecha mínima (24h desde ahora)
+    (function() {
+        const ahora = new Date();
+        const min = new Date(ahora.getTime() + 24 * 60 * 60 * 1000);
+        const yyyy = min.getFullYear();
+        const mm = String(min.getMonth() + 1).padStart(2, '0');
+        const dd = String(min.getDate()).padStart(2, '0');
+        const hh = String(min.getHours()).padStart(2, '0');
+        const mi = String(min.getMinutes()).padStart(2, '0');
+        const minStr = yyyy + '-' + mm + '-' + dd + 'T' + hh + ':' + mi;
+        const input = document.getElementById('fechaHoraInput');
+        if (input) {
+            input.setAttribute('min', minStr);
+            input.addEventListener('change', function() {
+                if (this.value) {
+                    const h = parseInt(this.value.split('T')[1].split(':')[0]);
+                    if (h < 7 || h >= 20) {
+                        alert('El horario debe ser entre 7:00 y 20:00.');
+                        this.value = '';
+                    }
+                }
+            });
+        }
+    })();
+</script>
+
+<script th:inline="javascript">
+    const precioPorHora = /*[[${profesor.precioPorHora ?: 0}]]*/ 0;
+
+    function formatCOP(valor) {
+        return '$' + Math.round(valor).toLocaleString('es-CO');
+    }
+
+    function calcularCosto(duracionMin) {
+        const costo = precioPorHora * duracionMin / 60;
+        const comision = costo * 0.10;
+        const textos = {
+            '30': '30 minutos',
+            '60': '1 hora',
+            '90': '1 hora 30 min',
+            '120': '2 horas'
+        };
+        document.getElementById('duracionTexto').textContent = textos[duracionMin] || duracionMin + ' min';
+        document.getElementById('comisionTexto').textContent = formatCOP(comision);
+        document.getElementById('totalTexto').textContent = formatCOP(costo);
+    }
+
+    calcularCosto(60);
+</script>
+
+<script th:src="@{/js/avatar.js}"></script>
+
+<script>
+document.getElementById("formAgendar").addEventListener("submit", function(e) {
+    const total = document.getElementById("totalTexto").textContent;
+    const confirmar = confirm("Se descontará " + total + " de tu billetera. ¿Deseas continuar?");
+    if (!confirmar) {
+        e.preventDefault();
+    }
+});
+
+(function () {
+    const btn  = document.getElementById('profileBtn');
+    const drop = document.getElementById('profileDropdown');
+    if (btn && drop) {
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const open = drop.classList.toggle('open');
+            btn.setAttribute('aria-expanded', open);
+        });
+        document.addEventListener('click', function () {
+            drop.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+        });
+        drop.addEventListener('click', function (e) { e.stopPropagation(); });
+    }
+})();
+</script>
+</body>
+</html>

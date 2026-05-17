@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis tutorías — Agenda Tutorías</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/styles.css}" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar-top" aria-label="Navegación principal">
+    <div class="navbar-left">
+        <a th:href="@{/estudiante/dashboard}" class="navbar-brand" aria-label="Inicio">
+            <img th:src="@{/img/logo.png}" alt="Comfenalco" onerror="this.style.display='none'">
+        </a>
+        <div class="navbar-sep-v"></div>
+        <nav class="navbar-nav-links" aria-label="Secciones">
+            <a th:href="@{/estudiante/dashboard}" class="nav-link">Inicio</a>
+            <a th:href="@{/estudiante/tutores}" class="nav-link">
+                <i class="bi bi-search"></i> Buscar tutor
+            </a>
+            <a th:href="@{/estudiante/tutorias}" class="nav-link active">
+                <i class="bi bi-calendar3"></i> Mis tutorías
+            </a>
+        </nav>
+    </div>
+
+    <div class="navbar-right">
+        <div class="mode-pill">
+            <a th:href="@{/estudiante/dashboard}" class="mode-pill-btn active">
+                <i class="bi bi-mortarboard"></i> Estudiante
+            </a>
+            <a th:href="@{/profesor/dashboard}" class="mode-pill-btn">
+                <i class="bi bi-person-workspace"></i> Tutor
+            </a>
+        </div>
+        <a th:href="@{/estudiante/billetera}" class="navbar-util-btn">
+            <i class="bi bi-wallet2"></i>
+            <span th:text="'$' + ${#numbers.formatDecimal(usuario.balance ?: 0, 0, 'COMMA', 0, 'POINT')}">$0</span>
+        </a>
+        <a th:href="@{/notificaciones}" class="navbar-util-btn navbar-bell">
+            <i class="bi bi-bell"></i>
+            <span th:if="${noLeidas > 0}" class="bell-badge" th:text="${noLeidas}"></span>
+        </a>
+        <div class="navbar-profile-menu">
+            <button class="profile-trigger" id="profileBtn" type="button"
+                    aria-haspopup="true" aria-expanded="false">
+                <div class="profile-avatar">
+                    <span th:text="${#strings.substring(usuario.nombre,0,1)}">U</span>
+                </div>
+                <span class="profile-name" th:text="${#strings.abbreviate(usuario.nombre,14)}">Usuario</span>
+                <i class="bi bi-chevron-down profile-chevron"></i>
+            </button>
+            <div class="profile-dropdown" id="profileDropdown">
+                <a th:href="@{/estudiante/perfil}" class="dropdown-item">
+                    <i class="bi bi-person"></i> Mi perfil
+                </a>
+                <a th:href="@{/estudiante/solicitar-tutor}" class="dropdown-item">
+                    <i class="bi bi-person-check"></i> Ser tutor
+                </a>
+                <div class="dropdown-divider"></div>
+                <a th:href="@{/logout}" class="dropdown-item dropdown-item-danger">
+                    <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid px-4 py-4">
+    <div th:if="${param.eliminada != null}" class="alerta alerta-exito mb-3">
+        <i class="bi bi-check-circle"></i> Tutoría eliminada del historial.
+    </div>
+    <div th:if="${param.confirmada != null}" class="alerta alerta-exito mb-3">
+        <i class="bi bi-check-circle"></i> Tutoría confirmada. ¡Gracias!
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 style="font-family:'Merriweather',serif; color:var(--azul); font-size:1.5rem;">
+                <i class="bi bi-calendar3 me-2"></i>Mis tutorías
+            </h2>
+            <p style="color:#7f8c8d; margin:0;">Historial completo de tus tutorías</p>
+        </div>
+        <a th:href="@{/estudiante/dashboard}" class="btn-secundario" style="padding:6px 14px;font-size:0.85rem;">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    <div class="card-institucional">
+        <div class="card-header-azul">
+            <i class="bi bi-list-check me-2"></i>Tutorías
+        </div>
+
+        <div th:if="${#lists.isEmpty(tutorias)}" class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <p>No tienes tutorías registradas.</p>
+        </div>
+
+        <table th:unless="${#lists.isEmpty(tutorias)}" class="tabla-institucional">
+            <thead>
+                <tr>
+                    <th>Tutor</th>
+                    <th>Materia</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="t : ${tutorias}">
+                    <td th:text="${t.profesorNombre}"></td>
+                    <td th:text="${t.materia}"></td>
+                    <td th:text="${#temporals.format(t.fechaHora, 'dd/MM/yyyy HH:mm')}"></td>
+                    <td>
+                        <span class="badge-estado" th:classappend="${t.estado.name() == 'PENDIENTE'     ? 'badge-pendiente' :
+                                               t.estado.name() == 'ACEPTADA'      ? 'badge-aceptada'  :
+                                               t.estado.name() == 'EN_CURSO'      ? 'badge-pendiente' :
+                                               t.estado.name() == 'FINALIZADA'    ? 'badge-aceptada'  :
+                                               t.estado.name() == 'EN_REVISION'   ? 'badge-pendiente' :
+                                               t.estado.name() == 'PAGADA'        ? 'badge-aceptada'  :
+                                               t.estado.name() == 'NO_ASISTIO'    ? 'badge-rechazada' :
+                                               t.estado.name() == 'EXPIRADA'      ? 'badge-rechazada' :
+                                               t.estado.name() == 'RECHAZADA'     ? 'badge-rechazada' :
+                                               t.estado.name() == 'REPROGRAMADA'  ? 'badge-pendiente' :
+                                                                                     'badge-cancelada'}"
+                              th:text="${t.estado}"></span>
+                    </td>
+                    <td>
+                        <!-- Confirmar pago (EN_REVISION) -->
+                        <form th:if="${t.estado.name() == 'EN_REVISION'}"
+                              th:action="@{/estudiante/tutorias/{id}/confirmar(id=${t.id})}"
+                              method="post" style="display:inline;">
+                            <button class="btn-primario" style="padding:5px 12px;font-size:0.78rem;">
+                                <i class="bi bi-check-lg"></i> Confirmar
+                            </button>
+                        </form>
+                        <!-- Eliminar (terminales) -->
+                        <form th:if="${t.estado.name() == 'FINALIZADA' or t.estado.name() == 'PAGADA'
+                                     or t.estado.name() == 'NO_ASISTIO' or t.estado.name() == 'EXPIRADA'
+                                     or t.estado.name() == 'CANCELADA' or t.estado.name() == 'RECHAZADA'}"
+                              th:action="@{/estudiante/tutorias/{id}/eliminar(id=${t.id})}"
+                              method="post" style="display:inline;"
+                              onsubmit="return confirm('¿Eliminar esta tutoría del historial?')">
+                            <button style="background:transparent;color:#bbb;border:1px solid #ddd;border-radius:8px;padding:5px 12px;font-size:0.78rem;cursor:pointer;">
+                                <i class="bi bi-trash3"></i> Eliminar
+                            </button>
+                        </form>
+                        <span th:if="${t.estado.name() == 'PENDIENTE' or t.estado.name() == 'ACEPTADA'
+                                     or t.estado.name() == 'EN_CURSO' or t.estado.name() == 'REPROGRAMADA'}"
+                              style="color:#bbb;font-size:0.85rem;">—</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div th:if="${totalPages > 1}" class="d-flex justify-content-center gap-2 p-3">
+            <a th:if="${currentPage > 0}"
+               th:href="@{/estudiante/tutorias(page=${currentPage - 1})}"
+               class="btn-primario" style="padding:6px 16px;font-size:0.82rem;">
+                <i class="bi bi-chevron-left"></i> Anterior
+            </a>
+            <span style="font-size:0.85rem;color:#7f8c8d;">
+                Página <strong style="color:var(--azul);" th:text="${currentPage + 1}"></strong>
+                de <strong th:text="${totalPages}"></strong>
+            </span>
+            <a th:if="${currentPage < totalPages - 1}"
+               th:href="@{/estudiante/tutorias(page=${currentPage + 1})}"
+               class="btn-primario" style="padding:6px 16px;font-size:0.82rem;">
+                Siguiente <i class="bi bi-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/avatar.js}"></script>
+<script>
+(function () {
+    const btn = document.getElementById('profileBtn');
+    const drop = document.getElementById('profileDropdown');
+    if (btn && drop) {
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            drop.classList.toggle('open');
+            const expanded = btn.getAttribute('aria-expanded') === 'true';
+            btn.setAttribute('aria-expanded', !expanded);
+        });
+        document.addEventListener('click', function () {
+            drop.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+        });
+        drop.addEventListener('click', function (e) { e.stopPropagation(); });
+    }
+})();
+</script>
+</body>
+</html>

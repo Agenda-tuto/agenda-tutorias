@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil — Agenda Tutorías</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/styles.css}" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar-top" aria-label="Navegación principal">
+  <div class="navbar-left">
+    <a th:href="@{/estudiante/dashboard}" class="navbar-brand" aria-label="Inicio">
+      <img th:src="@{/img/logo.png}" alt="Comfenalco" onerror="this.style.display='none'">
+    </a>
+    <div class="navbar-sep-v"></div>
+    <nav class="navbar-nav-links" aria-label="Secciones">
+      <a th:href="@{/estudiante/dashboard}" class="nav-link">Inicio</a>
+      <a th:href="@{/estudiante/tutores}" class="nav-link">
+        <i class="bi bi-search" aria-hidden="true"></i> Buscar tutor
+      </a>
+    </nav>
+  </div>
+  <div class="navbar-right">
+    <div class="mode-pill" role="group" aria-label="Cambiar modo">
+      <a th:href="@{/estudiante/dashboard}" class="mode-pill-btn active" aria-current="page">
+        <i class="bi bi-mortarboard" aria-hidden="true"></i> Estudiante
+      </a>
+      <a th:href="@{/profesor/dashboard}" class="mode-pill-btn">
+        <i class="bi bi-person-workspace" aria-hidden="true"></i> Tutor
+      </a>
+    </div>
+    <a th:href="@{/estudiante/billetera}" class="navbar-util-btn" aria-label="Mi billetera">
+      <i class="bi bi-wallet2" aria-hidden="true"></i>
+      <span th:text="'$' + ${#numbers.formatDecimal(usuario.balance ?: 0, 0, 'COMMA', 0, 'POINT')}">$0</span>
+    </a>
+    <a th:href="@{/notificaciones}" class="navbar-util-btn navbar-bell" aria-label="Notificaciones">
+      <i class="bi bi-bell" aria-hidden="true"></i>
+      <span th:if="${noLeidas > 0}" class="bell-badge" th:text="${noLeidas}" aria-label="sin leer"></span>
+    </a>
+    <div class="navbar-profile-menu">
+      <button class="profile-trigger" id="profileBtn"
+              aria-haspopup="true" aria-expanded="false" aria-controls="profileDropdown">
+        <div class="profile-avatar">
+          <span th:text="${#strings.substring(usuario.nombre, 0, 1)}">U</span>
+        </div>
+        <span class="profile-name" th:text="${#strings.abbreviate(usuario.nombre, 14)}">Usuario</span>
+        <i class="bi bi-chevron-down profile-chevron" aria-hidden="true"></i>
+      </button>
+      <div class="profile-dropdown" id="profileDropdown" role="menu">
+        <a th:href="@{/estudiante/perfil}" class="dropdown-item" role="menuitem">
+          <i class="bi bi-person" aria-hidden="true"></i> Mi perfil
+        </a>
+        <a th:href="@{/estudiante/solicitar-tutor}" class="dropdown-item" role="menuitem">
+          <i class="bi bi-person-check" aria-hidden="true"></i> Ser tutor
+        </a>
+        <div class="dropdown-divider"></div>
+        <a th:href="@{/logout}" class="dropdown-item dropdown-item-danger" role="menuitem">
+          <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Cerrar sesión
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <div style="text-align:center; margin-bottom:28px;">
+                <div class="avatar-iniciales grande"
+                     data-avatar th:attr="data-avatar=${usuario.nombre}"
+                     style="margin:0 auto 16px;"></div>
+                <h3 style="font-family:'Merriweather',serif; color:var(--azul);"
+                    th:text="${usuario.nombre}"></h3>
+                <span class="badge-estado badge-aceptada" th:text="${usuario.rol}"></span>
+            </div>
+
+            <div th:if="${param.ok}" class="alerta alerta-exito mb-3">
+                <i class="bi bi-check-circle"></i> Perfil actualizado correctamente.
+            </div>
+            <div th:if="${error}" class="alerta alerta-error mb-3">
+                <i class="bi bi-exclamation-circle"></i>
+                <span th:text="${error}"></span>
+            </div>
+
+            <!-- Info de cuenta -->
+            <div class="card-institucional mb-4">
+                <div class="card-header-azul">
+                    <i class="bi bi-wallet2 me-2"></i>Mi billetera
+                </div>
+                <div class="p-4" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <p style="margin:0; color:#7f8c8d; font-size:0.85rem;">Balance disponible</p>
+                        <h3 style="color:var(--azul); font-weight:700; margin:4px 0 0;"
+                            th:text="'$' + ${#numbers.formatDecimal(usuario.balance ?: 0, 0, 'COMMA', 0, 'POINT')}"></h3>
+                    </div>
+                    <a th:href="@{/estudiante/billetera}" class="btn-primario">
+                        <i class="bi bi-plus-circle"></i>Recargar
+                    </a>
+                </div>
+            </div>
+
+            <!-- Editar perfil -->
+            <div class="card-institucional">
+                <div class="card-header-azul">
+                    <i class="bi bi-person-gear me-2"></i>Editar perfil
+                </div>
+                <div class="p-4">
+                    <form th:action="@{/estudiante/perfil}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">Nombre completo</label>
+                            <input type="text" name="nombre" class="form-control"
+                                   th:value="${usuario.nombre}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Correo electrónico</label>
+                            <input type="email" class="form-control"
+                                   th:value="${usuario.correo}" disabled
+                                   style="background:#f8f9fa; color:#7f8c8d;">
+                            <small style="color:#7f8c8d;">El correo no se puede cambiar.</small>
+                        </div>
+
+                        <hr style="margin:20px 0;">
+                        <p style="font-weight:700; color:var(--azul); margin-bottom:16px;">
+                            <i class="bi bi-lock me-2"></i>Cambiar contraseña
+                            <small style="color:#7f8c8d; font-weight:400;"> (opcional)</small>
+                        </p>
+
+                        <div class="mb-3">
+                            <label class="form-label">Contraseña actual</label>
+                            <input type="password" name="passwordActual" class="form-control"
+                                   placeholder="Deja vacío si no quieres cambiarla">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Nueva contraseña</label>
+                            <input type="password" name="passwordNueva" class="form-control"
+                                   placeholder="Mínimo 6 caracteres">
+                        </div>
+
+                        <button type="submit" class="btn-primario w-100 justify-content-center">
+                            <i class="bi bi-floppy"></i>Guardar cambios
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script th:src="@{/js/avatar.js}"></script>
+    <script>
+(function () {
+  /* Dropdown de perfil */
+  const btn  = document.getElementById('profileBtn');
+  const drop = document.getElementById('profileDropdown');
+  if (btn && drop) {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      const open = drop.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open);
+    });
+    document.addEventListener('click', function () {
+      drop.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    });
+    drop.addEventListener('click', function (e) { e.stopPropagation(); });
+  }
+
+  /* Marcar link activo según URL actual */
+  const path = window.location.pathname;
+  document.querySelectorAll('.nav-link').forEach(function (a) {
+    if (a.getAttribute('href') === path) a.classList.add('active');
+  });
+
+  /* Color de avatar por inicial */
+  const paleta = ['#1A6FA5','#1E8449','#D35400','#7D3C98','#C0392B','#117A65'];
+  document.querySelectorAll('.profile-avatar').forEach(function (av) {
+    const letra = av.textContent.trim() || 'U';
+    av.style.background = paleta[letra.charCodeAt(0) % paleta.length];
+  });
+})();
+</script>
+</body>
+</html>

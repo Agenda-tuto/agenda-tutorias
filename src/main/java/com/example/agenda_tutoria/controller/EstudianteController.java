@@ -265,10 +265,9 @@ public class EstudianteController {
             return "redirect:/estudiante/agendar/" + profesorId + "?error=horario";
         }
 
-        // Validar que la materia pertenezca al profesor
-        if (profesor.getMaterias() != null && !profesor.getMaterias().isEmpty()
-                && !profesor.getMaterias().contains(tutoria.getMateria())) {
-            return "redirect:/estudiante/agendar/" + profesorId + "?error=materiaInvalida";
+        // Auto-asignar materia del profesor (se asume al elegir al tutor)
+        if (profesor.getMaterias() != null && !profesor.getMaterias().isEmpty()) {
+            tutoria.setMateria(profesor.getMaterias().get(0));
         }
 
         double costo = pagoService.calcularCosto(

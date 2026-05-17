@@ -213,7 +213,9 @@ public class DataLoader implements CommandLineRunner {
                     page++;
                 }
             }
-            if (totalTutorias < 100 || reseedNeeded) {
+            // Siempre reseedear si hay tutorías pero son menos de 15,000
+            // (cubre casos de seed parcial por reinicio de Railway)
+            if (totalTutorias < 100 || reseedNeeded || (totalTutorias >= 100 && totalTutorias < 15000)) {
                 System.out.println("🗑️ Limpiando datos antiguos para reseed...");
                 historialEstadoRepository.deleteAll();
                 pagoRepository.deleteAll();
@@ -231,7 +233,7 @@ public class DataLoader implements CommandLineRunner {
 
     private void seedMassiveData(List<Usuario> estudiantes, List<Usuario> profesores) {
         int target = 15000;
-        int batchSize = 500;
+        int batchSize = 200;
         List<Tutoria> tutorias = new ArrayList<>(batchSize);
         List<Pago> pagos = new ArrayList<>(batchSize);
         List<HistorialEstado> historiales = new ArrayList<>(batchSize);
@@ -280,7 +282,7 @@ public class DataLoader implements CommandLineRunner {
                 tutorias.clear();
                 pagos.clear();
                 historiales.clear();
-                if ((i + 1) % 5000 == 0) {
+                if ((i + 1) % 3000 == 0) {
                     System.out.println("📦 " + (i + 1) + "/" + target + " tutorías insertadas...");
                 }
             }
@@ -304,6 +306,7 @@ public class DataLoader implements CommandLineRunner {
                 existente.setBalance("PROFESOR".equals(rol) ? 0.0 : 50000.0);
                 cambio = true;
             }
+            // Actualizar materias aunque el usuario ya exista (previene datos huérfanos de versiones anteriores)
             if (materias != null && !materias.isEmpty()
                     && (existente.getMaterias() == null || !existente.getMaterias().equals(materias))) {
                 existente.setMaterias(materias);

@@ -86,6 +86,10 @@
                 <i class="bi bi-clock"></i>
                 El horario disponible es de <strong>7:00 a 20:00</strong>. Elige una hora dentro de ese rango.
             </div>
+            <div th:if="${param.error == 'materiaInvalida'}" class="alerta alerta-error mb-3">
+                <i class="bi bi-exclamation-triangle"></i>
+                La materia seleccionada no está entre las que ofrece este tutor.
+            </div>
 
             <!-- Info del tutor -->
             <div class="card-institucional mb-4">
@@ -126,8 +130,11 @@
                           method="post" th:object="${tutoria}" id="formAgendar">
                         <div class="mb-3">
                             <label class="form-label">Materia</label>
-                            <input type="text" th:field="*{materia}" class="form-control"
-                                   placeholder="Ej: Cálculo, Programación..." required>
+                            <select th:field="*{materia}" class="form-select" required>
+                                <option value="">Selecciona una materia</option>
+                                <option th:each="mat : ${profesor.materias}"
+                                        th:value="${mat}" th:text="${mat}"></option>
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Descripción del tema</label>

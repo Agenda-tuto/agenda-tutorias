@@ -18,6 +18,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -45,7 +46,8 @@ public class ProfesorController {
         }
 
         Page<Tutoria> tutoriasPage = tutoriaRepository
-                .findByProfesorId(profesor.getId(), PageRequest.of(page, 10));
+                .findByProfesorId(profesor.getId(),
+                        PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, "fechaHora")));
 
         List<Tutoria> todas = tutoriaRepository.findByProfesorId(profesor.getId());
         long pendientes = todas.stream().filter(t -> t.getEstado() == Tutoria.Estado.PENDIENTE).count();

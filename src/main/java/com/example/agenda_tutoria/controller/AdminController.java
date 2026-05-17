@@ -10,6 +10,7 @@ import com.example.agenda_tutoria.repository.TutoriaRepository;
 import com.example.agenda_tutoria.repository.UsuarioRepository;
 import com.example.agenda_tutoria.service.NotificacionService;
 import com.example.agenda_tutoria.service.PagoService;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -53,15 +54,15 @@ public class AdminController {
         return "admin/usuarios";
     }
 
+    @Transactional
     @PostMapping("/usuarios/{id}/eliminar")
     public String eliminarUsuario(@PathVariable String id, Authentication auth) {
         String adminCorreo = auth.getName();
         usuarioRepository.findById(id).ifPresent(u -> {
             if ("ADMIN".equals(u.getRol()) || u.getCorreo().equals(adminCorreo)) return;
-            tutoriaRepository.findByEstudianteId(id).forEach(tutoriaRepository::delete);
-            tutoriaRepository.findByProfesorId(id).forEach(tutoriaRepository::delete);
-            notificacionRepository.findByUsuarioIdOrderByFechaDesc(id)
-                    .forEach(notificacionRepository::delete);
+            tutoriaRepository.deleteByEstudianteId(id);
+            tutoriaRepository.deleteByProfesorId(id);
+            notificacionRepository.deleteByUsuarioId(id);
             usuarioRepository.deleteById(id);
         });
         return "redirect:/admin/usuarios?eliminado=true";

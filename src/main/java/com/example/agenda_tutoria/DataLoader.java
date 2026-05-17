@@ -11,6 +11,7 @@ import com.example.agenda_tutoria.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -190,7 +191,7 @@ public class DataLoader implements CommandLineRunner {
             boolean reseedNeeded = false;
             if (tutoriaRepository.count() >= 100) {
                 List<Tutoria> muestra = tutoriaRepository.findAll(
-                        org.springframework.data.domain.PageRequest.of(0, 100)).getContent();
+                        PageRequest.of(0, 100)).getContent();
                 for (Tutoria t : muestra) {
                     Usuario profe = profesores.stream()
                             .filter(p -> p.getId().equals(t.getProfesorId()))
@@ -321,4 +322,5 @@ public class DataLoader implements CommandLineRunner {
         System.out.println("✅ Creado: " + nombre + " (" + rol + ")");
     }
 }
+
 

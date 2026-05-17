@@ -190,14 +190,16 @@ public class DataLoader implements CommandLineRunner {
             boolean reseedNeeded = false;
             if (tutoriaRepository.count() >= 100) {
                 List<Tutoria> muestra = tutoriaRepository.findAll(
-                        org.springframework.data.domain.PageRequest.of(0, 1)).getContent();
-                if (!muestra.isEmpty()) {
-                    Tutoria primera = muestra.get(0);
+                        org.springframework.data.domain.PageRequest.of(0, 100)).getContent();
+                for (Tutoria t : muestra) {
                     Usuario profe = profesores.stream()
-                            .filter(p -> p.getId().equals(primera.getProfesorId()))
+                            .filter(p -> p.getId().equals(t.getProfesorId()))
                             .findFirst().orElse(null);
                     if (profe != null && profe.getMaterias() != null && !profe.getMaterias().isEmpty()) {
-                        reseedNeeded = !profe.getMaterias().contains(primera.getMateria());
+                        if (!profe.getMaterias().contains(t.getMateria())) {
+                            reseedNeeded = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -319,3 +321,4 @@ public class DataLoader implements CommandLineRunner {
         System.out.println("✅ Creado: " + nombre + " (" + rol + ")");
     }
 }
+

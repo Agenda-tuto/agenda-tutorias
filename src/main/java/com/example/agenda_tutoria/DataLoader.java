@@ -292,7 +292,7 @@ public class DataLoader implements CommandLineRunner {
                                   String rol, String especialidad, String descripcion,
                                   List<String> materias, Double precio,
                                   int experiencia, boolean verificado) {
-        // Si ya existe, solo asegurar que esté verificada y tenga balance
+        // Si ya existe, solo asegurar que esté verificada, tenga balance y materias correctas
         if (usuarioRepository.findByCorreo(correo).isPresent()) {
             Usuario existente = usuarioRepository.findByCorreo(correo).get();
             boolean cambio = false;
@@ -304,9 +304,17 @@ public class DataLoader implements CommandLineRunner {
                 existente.setBalance("PROFESOR".equals(rol) ? 0.0 : 50000.0);
                 cambio = true;
             }
+            if (materias != null && !materias.isEmpty()
+                    && (existente.getMaterias() == null || !existente.getMaterias().equals(materias))) {
+                existente.setMaterias(materias);
+                cambio = true;
+            }
+            if (precio != null && existente.getPrecioPorHora() == null) {
+                existente.setPrecioPorHora(precio);
+                cambio = true;
+            }
             if (cambio) {
                 usuarioRepository.save(existente);
-                System.out.println("🔄 Actualizado: " + nombre + " (verificado=true)");
             }
             return;
         }

@@ -923,3 +923,81 @@ body {
 .navbar-profile-menu {
     position: relative;
 }
+
+/* ── Responsive móvil ── */
+@media (max-width: 768px) {
+    .navbar-top {
+        height: auto;
+        padding: 10px 16px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .navbar-left,
+    .navbar-right {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .navbar-left {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .navbar-brand img {
+        height: 30px;
+    }
+
+    .navbar-nav-links {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .nav-link {
+        font-size: 0.78rem;
+        padding: 4px 10px;
+    }
+
+    .navbar-sep-v {
+        display: none;
+    }
+
+    .mode-pill-btn {
+        font-size: 0.72rem;
+        padding: 4px 10px;
+    }
+
+    .profile-name {
+        display: none;
+    }
+
+    .navbar-util-btn {
+        font-size: 0.78rem;
+        padding: 4px 10px;
+    }
+
+    .profile-avatar {
+        width: 30px;
+        height: 30px;
+        font-size: 0.82rem;
+    }
+
+    .bell-badge {
+        top: -4px;
+        right: -4px;
+        font-size: 0.6rem;
+        min-width: 16px;
+        height: 16px;
+    }
+
+    .container-fluid {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .row.g-4 > [class*="col-"] {
+        padding-left: 6px;
+        padding-right: 6px;
+    }
+}

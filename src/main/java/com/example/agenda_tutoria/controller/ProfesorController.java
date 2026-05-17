@@ -41,9 +41,7 @@ public class ProfesorController {
     public String dashboard(@RequestParam(defaultValue = "0") int page,
                             Authentication auth, Model model) {
         Usuario profesor = usuarioRepository.findByCorreo(auth.getName()).orElseThrow();
-        if (!"PROFESOR".equals(profesor.getRol()) && !"ADMIN".equals(profesor.getRol())) {
-            return "redirect:/estudiante/dashboard?error=acceso";
-        }
+        if (!esProfesorOAdmin(profesor)) return "redirect:/403";
 
         Page<Tutoria> tutoriasPage = tutoriaRepository
                 .findByProfesorId(profesor.getId(),
@@ -85,11 +83,16 @@ public class ProfesorController {
         return "redirect:/profesor/tutorias/" + id + "/gestionar?msg=enviado";
     }
 
+    private boolean esProfesorOAdmin(Usuario usuario) {
+        return "PROFESOR".equals(usuario.getRol()) || "ADMIN".equals(usuario.getRol());
+    }
+
     // ───────────────────────── GESTIONAR TUTORÍA ─────────────────────────
     @GetMapping("/tutorias/{id}/gestionar")
     public String gestionarTutoria(@PathVariable String id,
             Model model, Authentication auth) {
         Usuario profesor = usuarioRepository.findByCorreo(auth.getName()).orElseThrow();
+        if (!esProfesorOAdmin(profesor)) return "redirect:/403";
         Tutoria t = tutoriaRepository.findById(id).orElse(null);
 
         if (t == null || !t.getProfesorId().equals(profesor.getId())) {
@@ -422,6 +425,7 @@ public class ProfesorController {
     @GetMapping("/perfil")
     public String verPerfil(Authentication auth, Model model) {
         Usuario profesor = usuarioRepository.findByCorreo(auth.getName()).orElseThrow();
+        if (!esProfesorOAdmin(profesor)) return "redirect:/403";
         model.addAttribute("profesor", profesor);
         model.addAttribute("noLeidas",
                 notificacionRepository.countByUsuarioIdAndLeidaFalse(profesor.getId()));
@@ -443,6 +447,7 @@ public class ProfesorController {
     @GetMapping("/retiros")
     public String verRetiros(Authentication auth, Model model) {
         Usuario profesor = usuarioRepository.findByCorreo(auth.getName()).orElseThrow();
+        if (!esProfesorOAdmin(profesor)) return "redirect:/403";
         model.addAttribute("profesor", profesor);
         model.addAttribute("noLeidas",
                 notificacionRepository.countByUsuarioIdAndLeidaFalse(profesor.getId()));

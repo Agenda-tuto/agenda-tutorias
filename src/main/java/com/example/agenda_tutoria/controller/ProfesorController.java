@@ -328,6 +328,39 @@ public class ProfesorController {
         return "redirect:/profesor/dashboard?ok=revision";
     }
 
+    // ───────────────────────── REPORTAR AL ADMIN ─────────────────────────
+    @PostMapping("/tutorias/{id}/reportar-admin")
+    public String reportarAdmin(@PathVariable String id,
+            @RequestParam String motivo,
+            Authentication auth) {
+        Usuario profesor = usuarioRepository.findByCorreo(auth.getName()).orElseThrow();
+
+        tutoriaRepository.findById(id).ifPresent(t -> {
+            if (!t.getProfesorId().equals(profesor.getId())) return;
+            if (t.getEstado() != Tutoria.Estado.EN_REVISION) return;
+
+            // Buscar admin
+            usuarioRepository.findByCorreo("admin@tutorias.com").ifPresent(admin -> {
+                notificacionService.crear(admin.getId(),
+                        "Profesor reporta tutoría sin confirmar",
+                        "El profesor " + profesor.getNombre()
+                                + " reporta que la tutoría de " + t.getMateria()
+                                + " con " + t.getEstudianteNombre()
+                                + " está en revisión y el estudiante no ha confirmado."
+                                + " Motivo: " + motivo,
+                        Notificacion.Tipo.TUTORIA_EN_REVISION);
+            });
+
+            notificacionService.crear(t.getProfesorId(),
+                    "Reporte enviado al admin",
+                    "Has reportado la tutoría de " + t.getMateria()
+                            + ". El administrador revisará el caso.",
+                    Notificacion.Tipo.TUTORIA_EN_REVISION);
+        });
+
+        return "redirect:/profesor/tutorias/" + id + "/gestionar?reportado=true";
+    }
+
     // ───────────────────────── NO ASISTIÓ ─────────────────────────
     @PostMapping("/tutorias/{id}/no-asistio")
     public String noAsistio(@PathVariable String id, Authentication auth) {

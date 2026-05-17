@@ -185,8 +185,28 @@ public class DataLoader implements CommandLineRunner {
                 System.out.println("✅ Pagos seed — " + pagos.size() + " registros");
             }
 
-            // Seed tutorías masivas si hay menos de 100 (primera ejecución)
-            if (tutoriaRepository.count() < 100) {
+            // Seed tutorías masivas — siempre reseedear si hay menos de 100
+            // o si detectamos materias mal asignadas (de una versión anterior)
+            boolean reseedNeeded = false;
+            if (tutoriaRepository.count() >= 100) {
+                List<Tutoria> muestra = tutoriaRepository.findAll(
+                        org.springframework.data.domain.PageRequest.of(0, 1)).getContent();
+                if (!muestra.isEmpty()) {
+                    Tutoria primera = muestra.get(0);
+                    Usuario profe = profesores.stream()
+                            .filter(p -> p.getId().equals(primera.getProfesorId()))
+                            .findFirst().orElse(null);
+                    if (profe != null && profe.getMaterias() != null && !profe.getMaterias().isEmpty()) {
+                        reseedNeeded = !profe.getMaterias().contains(primera.getMateria());
+                    }
+                }
+            }
+            if (tutoriaRepository.count() < 100 || reseedNeeded) {
+                System.out.println("🗑️ Limpiando datos antiguos para reseed...");
+                historialEstadoRepository.deleteAll();
+                pagoRepository.deleteAll();
+                tutoriaRepository.deleteAll();
+                System.out.println("✅ Bases limpias — generando 15,000 tutorías...");
                 seedMassiveData(estudiantes, profesores);
             }
         }
@@ -299,4 +319,3 @@ public class DataLoader implements CommandLineRunner {
         System.out.println("✅ Creado: " + nombre + " (" + rol + ")");
     }
 }
-

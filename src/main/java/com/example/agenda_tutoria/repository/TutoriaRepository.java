@@ -2,6 +2,8 @@ package com.example.agenda_tutoria.repository;
 
 import com.example.agenda_tutoria.model.Tutoria;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
@@ -17,4 +19,13 @@ public interface TutoriaRepository extends JpaRepository<Tutoria, String> {
     long countByEstudianteId(String estudianteId);
     long countByProfesorIdAndEstado(String profesorId, Tutoria.Estado estado);
     List<Tutoria> findByFechaHoraBeforeAndEstadoIn(LocalDateTime fecha, List<Tutoria.Estado> estados);
+
+    @Modifying
+    @Query("DELETE FROM Tutoria t WHERE t.estudianteId = ?1")
+    void deleteByEstudianteId(String estudianteId);
+
+    @Modifying
+    @Query("DELETE FROM Tutoria t WHERE t.profesorId = ?1")
+    void deleteByProfesorId(String profesorId);
 }
+

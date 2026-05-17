@@ -265,6 +265,12 @@ public class EstudianteController {
             return "redirect:/estudiante/agendar/" + profesorId + "?error=horario";
         }
 
+        // Validar que la materia pertenezca al profesor
+        if (profesor.getMaterias() != null && !profesor.getMaterias().isEmpty()
+                && !profesor.getMaterias().contains(tutoria.getMateria())) {
+            return "redirect:/estudiante/agendar/" + profesorId + "?error=materiaInvalida";
+        }
+
         double costo = pagoService.calcularCosto(
                 profesor.getPrecioPorHora(), tutoria.getDuracionMin());
 

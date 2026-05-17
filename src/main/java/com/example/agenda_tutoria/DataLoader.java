@@ -331,4 +331,3 @@ public class DataLoader implements CommandLineRunner {
         System.out.println("✅ Creado: " + nombre + " (" + rol + ")");
     }
 }
-

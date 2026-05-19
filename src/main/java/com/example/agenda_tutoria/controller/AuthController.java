@@ -71,10 +71,23 @@ public class AuthController {
     public String mostrarVerificacion(
             @RequestParam String correo,
             @RequestParam(required = false) String error,
+            @RequestParam(required = false) String reenviado,
             Model model) {
         model.addAttribute("correo", correo);
         if (error != null) model.addAttribute("error", "Código incorrecto. Inténtalo de nuevo.");
+        if (reenviado != null) model.addAttribute("reenviado", "Código reenviado. Revisa tu correo.");
         return "verificar";
+    }
+
+    @GetMapping("/reenviar-codigo")
+    public String reenviarCodigo(@RequestParam String correo) {
+        usuarioRepository.findByCorreo(correo).ifPresent(usuario -> {
+            String codigo = String.format("%06d", new Random().nextInt(999999));
+            usuario.setCodigoVerificacion(codigo);
+            usuarioRepository.save(usuario);
+            emailService.enviarCodigoVerificacion(usuario.getCorreo(), usuario.getNombre(), codigo);
+        });
+        return "redirect:/verificar?correo=" + correo + "&reenviado=true";
     }
 
     @PostMapping("/verificar")

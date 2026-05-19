@@ -88,13 +88,6 @@
                             <div class="col-md-6">
                                 <p
                                     style="margin:0; font-size:0.8rem; color:#7f8c8d; text-transform:uppercase; letter-spacing:0.5px;">
-                                    Materia</p>
-                                <p style="margin-top:6px; font-weight:700; color:var(--texto);"
-                                    th:text="${tutoria.materia}"></p>
-                            </div>
-                            <div class="col-md-6">
-                                <p
-                                    style="margin:0; font-size:0.8rem; color:#7f8c8d; text-transform:uppercase; letter-spacing:0.5px;">
                                     Fecha y hora</p>
                                 <p style="margin-top:6px; font-weight:600; color:var(--texto);"
                                     th:text="${#temporals.format(tutoria.fechaHora, 'dd/MM/yyyy HH:mm')}"></p>

@@ -1,19 +1,23 @@
 package com.example.agenda_tutoria.controller;
 
 import com.example.agenda_tutoria.model.Notificacion;
+import com.example.agenda_tutoria.model.Pago;
 import com.example.agenda_tutoria.model.SolicitudRetiro;
-import com.example.agenda_tutoria.model.Transaccion;
 import com.example.agenda_tutoria.model.Tutoria;
 import com.example.agenda_tutoria.model.Usuario;
 import com.example.agenda_tutoria.repository.NotificacionRepository;
+import com.example.agenda_tutoria.repository.PagoRepository;
 import com.example.agenda_tutoria.repository.SolicitudRetiroRepository;
-import com.example.agenda_tutoria.repository.TransaccionRepository;
 import com.example.agenda_tutoria.repository.TutoriaRepository;
+import com.example.agenda_tutoria.repository.TransaccionRepository;
 import com.example.agenda_tutoria.repository.UsuarioRepository;
 import com.example.agenda_tutoria.service.NotificacionService;
 import com.example.agenda_tutoria.service.PagoService;
 
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import com.example.agenda_tutoria.model.Transaccion;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -34,6 +38,7 @@ public class ProfesorController {
     @Autowired private NotificacionService notificacionService;
     @Autowired private SolicitudRetiroRepository solicitudRetiroRepository;
     @Autowired private TransaccionRepository transaccionRepository;
+    @Autowired private PagoRepository pagoRepository;
     @Autowired private PagoService pagoService;
 
     // ───────────────────────── DASHBOARD ─────────────────────────
@@ -53,6 +58,20 @@ public class ProfesorController {
         long noLeidas = notificacionRepository
                 .countByUsuarioIdAndLeidaFalse(profesor.getId());
 
+        // Chart data: tutorías por estado
+        Map<Tutoria.Estado, Long> porEstado = todas.stream()
+                .collect(Collectors.groupingBy(Tutoria::getEstado, Collectors.counting()));
+        // Ingresos del profesor
+        List<Pago> misPagos = pagoRepository.findByUsuarioIdOrderByFechaDesc(profesor.getId()).stream()
+                .filter(p -> p.getTipo() == Pago.Tipo.PAGO || p.getTipo() == Pago.Tipo.INGRESO)
+                .collect(Collectors.toList());
+        Map<String, Double> ingresosPorMes = misPagos.stream()
+                .filter(p -> p.getFecha() != null)
+                .collect(Collectors.groupingBy(
+                        p -> String.format("%d-%02d", p.getFecha().getYear(), p.getFecha().getMonthValue()),
+                        Collectors.summingDouble(Pago::getMonto)));
+        var ingresosSorted = new TreeMap<>(ingresosPorMes);
+
         model.addAttribute("profesor", profesor);
         model.addAttribute("tutorias", tutoriasPage.getContent());
         model.addAttribute("currentPage", page);
@@ -61,6 +80,10 @@ public class ProfesorController {
         model.addAttribute("pendientes", pendientes);
         model.addAttribute("aceptadas", aceptadas);
         model.addAttribute("noLeidas", noLeidas);
+        model.addAttribute("estadosLabels", porEstado.keySet().stream().map(Enum::name).toList());
+        model.addAttribute("estadosData", porEstado.values().stream().toList());
+        model.addAttribute("ingresosLabels", ingresosSorted.keySet().stream().toList());
+        model.addAttribute("ingresosData", ingresosSorted.values().stream().toList());
         return "profesor/dashboard";
     }
 

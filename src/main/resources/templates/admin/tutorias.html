@@ -84,7 +84,6 @@
                 <tr>
                     <th>Estudiante</th>
                     <th>Tutor</th>
-                    <th>Materia</th>
                     <th>Fecha</th>
                     <th>Estado</th>
                     <th>Acción</th>
@@ -94,7 +93,6 @@
                 <tr th:each="t : ${tutorias}">
                     <td th:text="${t.estudianteNombre}"></td>
                     <td th:text="${t.profesorNombre}"></td>
-                    <td th:text="${t.materia}"></td>
                     <td th:text="${#temporals.format(t.fechaHora, 'dd/MM/yyyy HH:mm')}"></td>
                     <td>
                         <span class="badge-estado" th:classappend="${t.estado.name() == 'PENDIENTE'     ? 'badge-pendiente' :

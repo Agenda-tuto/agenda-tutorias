@@ -54,6 +54,9 @@
                     <p style="color:#7f8c8d; font-size:0.82rem; margin-top:8px;">
                         Revisa también la carpeta de spam si no lo encuentras.
                     </p>
+                    <p th:if="${codigoDemo}" style="font-size:0.78rem; color:#999; text-align:center; margin:0;">
+                        Código de respaldo: <strong th:text="${codigoDemo}"></strong>
+                    </p>
                 </div>
                 <button type="submit" class="btn-primario w-100 justify-content-center">
                     <i class="bi bi-check-circle"></i>Verificar y activar cuenta

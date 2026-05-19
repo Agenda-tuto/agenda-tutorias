@@ -28,4 +28,3 @@ public interface TutoriaRepository extends JpaRepository<Tutoria, String> {
     @Query("DELETE FROM Tutoria t WHERE t.profesorId = ?1")
     void deleteByProfesorId(String profesorId);
 }
-

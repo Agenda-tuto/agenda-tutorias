@@ -254,11 +254,9 @@
                 <div th:if="${ultimaTutoria != null}"
                      style="padding:12px 0; border-bottom:1px solid #f0f2f5;">
 
-                    <!-- Cabecera: materia + badge estado -->
-                    <div style="display:flex; justify-content:space-between;
+                    <!-- Cabecera: estado -->
+                    <div style="display:flex; justify-content:flex-end;
                                 align-items:flex-start; gap:8px; margin-bottom:6px;">
-                        <strong style="font-size:0.92rem; color:var(--azul);"
-                                th:text="${ultimaTutoria.materia}">Materia</strong>
                         <span th:classappend="${ultimaTutoria.estado.name() == 'PENDIENTE'   ? 'badge bg-warning text-dark' :
                                                ultimaTutoria.estado.name() == 'ACEPTADA'    ? 'badge bg-success' :
                                                ultimaTutoria.estado.name() == 'EN_CURSO'    ? 'badge bg-info text-dark' :

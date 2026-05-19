@@ -1,20 +1,16 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Admin — Agenda Tutorías</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+3:wght@300;400;600&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <link th:href="@{/css/styles.css}" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
-
 <body>
-
    <nav class="navbar-top navbar-top-admin" aria-label="Panel de administración">
   <div class="navbar-left">
     <a th:href="@{/admin/dashboard}" class="navbar-brand" aria-label="Inicio admin">
@@ -25,40 +21,34 @@
     <nav class="navbar-nav-links">
       <a th:href="@{/admin/dashboard}" class="nav-link">Dashboard</a>
       <a th:href="@{/admin/usuarios}" class="nav-link">
-        <i class="bi bi-people" aria-hidden="true"></i> Usuarios
+        <i class="bi bi-people"></i> Usuarios
       </a>
       <a th:href="@{/admin/tutorias}" class="nav-link">
-        <i class="bi bi-calendar3" aria-hidden="true"></i> Tutorías
+        <i class="bi bi-calendar3"></i> Tutorías
       </a>
       <a th:href="@{/admin/retiros}" class="nav-link">
-        <i class="bi bi-cash-coin" aria-hidden="true"></i> Retiros
+        <i class="bi bi-cash-coin"></i> Retiros
       </a>
       <a th:href="@{/admin/solicitudes-tutor}" class="nav-link">
-        <i class="bi bi-person-check" aria-hidden="true"></i> Solicitudes
-        <span th:if="${solicitudesPendientes > 0}"
-              class="nav-link-badge"
-              th:text="${solicitudesPendientes}"></span>
+        <i class="bi bi-person-check"></i> Solicitudes
+        <span th:if="${solicitudesPendientes > 0}" class="nav-link-badge" th:text="${solicitudesPendientes}"></span>
       </a>
     </nav>
   </div>
   <div class="navbar-right">
     <a th:href="@{/logout}" class="btn-nav-danger-sm">
-      <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Salir
+      <i class="bi bi-box-arrow-right"></i> Salir
     </a>
   </div>
 </nav>
-
     <div class="container-fluid px-4 py-4">
-
         <div class="mb-4">
-            <h2 style="font-family:'Merriweather',serif; color:var(--azul); font-size:1.5rem;">
-                Panel de administración
-            </h2>
+            <h2 style="font-family:'Merriweather',serif; color:var(--azul); font-size:1.5rem;">Panel de administración</h2>
             <p style="color:#7f8c8d; margin:0;">Gestiona usuarios, tutores y tutorías de la plataforma</p>
         </div>
-
+        <!-- Stats -->
         <div class="row g-3 mb-4">
-            <div class="col-md-4">
+            <div class="col-md-3 col-6">
                 <div class="stat-card">
                     <div class="stat-icon azul"><i class="bi bi-people-fill"></i></div>
                     <div class="stat-info">
@@ -67,7 +57,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3 col-6">
                 <div class="stat-card">
                     <div class="stat-icon verde"><i class="bi bi-calendar-check"></i></div>
                     <div class="stat-info">
@@ -76,7 +66,16 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3 col-6">
+                <div class="stat-card">
+                    <div class="stat-icon azul-claro"><i class="bi bi-person-badge"></i></div>
+                    <div class="stat-info">
+                        <h3 th:text="${totalProfesores}">0</h3>
+                        <p>Tutores</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
                 <div class="stat-card">
                     <div class="stat-icon naranja"><i class="bi bi-hourglass-split"></i></div>
                     <div class="stat-info">
@@ -86,78 +85,81 @@
                 </div>
             </div>
         </div>
-
-        <!-- Accesos rápidos -->
-        <div class="row g-3">
-            <div class="col-md-6">
+        <!-- Charts -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
                 <div class="card-institucional">
-                    <div class="card-header-azul">
-                        <i class="bi bi-people me-2"></i>Gestión de usuarios
-                    </div>
-                    <div class="p-4">
-                        <p style="color:#7f8c8d; font-size:0.92rem; margin-bottom:16px;">
-                            Visualiza y administra todos los usuarios registrados en la plataforma.
-                        </p>
-                        <a th:href="@{/admin/usuarios}" class="btn-primario">
-                            <i class="bi bi-arrow-right-circle"></i>Ver usuarios
-                        </a>
+                    <div class="card-header-azul"><i class="bi bi-pie-chart me-2"></i>Tutorías por estado</div>
+                    <div class="p-3" style="height:280px;">
+                        <canvas id="chartEstados"></canvas>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div class="card-institucional">
-                    <div class="card-header-azul">
-                        <i class="bi bi-person-check me-2"></i>Solicitudes de tutor
+                    <div class="card-header-azul"><i class="bi bi-bar-chart me-2"></i>Ingresos por mes</div>
+                    <div class="p-3" style="height:280px;">
+                        <canvas id="chartIngresos"></canvas>
                     </div>
-                    <div class="p-4">
-                        <p style="color:#7f8c8d; font-size:0.92rem; margin-bottom:16px;">
-                            Revisa y aprueba las solicitudes de estudiantes que quieren ser tutores.
-                        </p>
-                        <a th:href="@{/admin/solicitudes-tutor}" class="btn-primario">
-                            <i class="bi bi-arrow-right-circle"></i>Ver solicitudes
-                        </a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card-institucional">
+                    <div class="card-header-azul"><i class="bi bi-trophy me-2"></i>Tutores más activos</div>
+                    <div class="p-3" style="height:280px;">
+                        <canvas id="chartTopTutores"></canvas>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Acceso a gestión de tutorías -->
-        <div class="row g-3 mt-2">
+        <!-- Accesos rápidos -->
+        <div class="row g-3">
             <div class="col-md-6">
                 <div class="card-institucional">
-                    <div class="card-header-azul">
-                        <i class="bi bi-calendar3 me-2"></i>Gestión de tutorías
-                    </div>
+                    <div class="card-header-azul"><i class="bi bi-people me-2"></i>Gestión de usuarios</div>
                     <div class="p-4">
-                        <p style="color:#7f8c8d; font-size:0.92rem; margin-bottom:16px;">
-                            Administra estados de tutorías: aprueba pagos, marca como no asistió o expirada.
-                        </p>
-                        <a th:href="@{/admin/tutorias(estado='EN_REVISION')}" class="btn-primario">
-                            <i class="bi bi-search"></i>Ver en revisión
-                        </a>
-                        <a th:href="@{/admin/tutorias}" class="btn-secundario ms-2">
-                            <i class="bi bi-list"></i>Todas
-                        </a>
+                        <p style="color:#7f8c8d; font-size:0.92rem; margin-bottom:16px;">Visualiza y administra todos los usuarios registrados en la plataforma.</p>
+                        <a th:href="@{/admin/usuarios}" class="btn-primario"><i class="bi bi-arrow-right-circle"></i>Ver usuarios</a>
                     </div>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="card-institucional">
-                    <div class="card-header-azul">
-                        <i class="bi bi-clock-history me-2"></i>Retiros de fondos
-                    </div>
+                    <div class="card-header-azul"><i class="bi bi-person-check me-2"></i>Solicitudes de tutor</div>
                     <div class="p-4">
-                        <p style="color:#7f8c8d; font-size:0.92rem; margin-bottom:16px;">
-                            Gestiona las solicitudes de retiro de fondos de los tutores.
-                        </p>
-                        <a th:href="@{/admin/retiros}" class="btn-primario">
-                            <i class="bi bi-arrow-right-circle"></i>Ver retiros
-                        </a>
+                        <p style="color:#7f8c8d; font-size:0.92rem; margin-bottom:16px;">Revisa y aprueba las solicitudes de estudiantes que quieren ser tutores.</p>
+                        <a th:href="@{/admin/solicitudes-tutor}" class="btn-primario"><i class="bi bi-arrow-right-circle"></i>Ver solicitudes</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    <script>
+    const colores = ['#1a3a5c','#c0392b','#27ae60','#f39c12','#2980b9','#8e44ad','#16a085','#e67e22','#2c3e50','#95a5a6'];
+    new Chart(document.getElementById('chartEstados'), {
+        type: 'pie',
+        data: {
+            labels: [/*[[${estadosLabels}]]*/],
+            datasets: [{ data: [/*[[${estadosData}]]*/], backgroundColor: colores }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } } }
+    });
+    new Chart(document.getElementById('chartIngresos'), {
+        type: 'bar',
+        data: {
+            labels: [/*[[${ingresosLabels}]]*/],
+            datasets: [{ label: 'Ingresos ($)', data: [/*[[${ingresosData}]]*/], backgroundColor: '#1a3a5c', borderRadius: 6 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return '$' + v.toLocaleString(); } } } }, plugins: { legend: { display: false } } }
+    });
+    new Chart(document.getElementById('chartTopTutores'), {
+        type: 'bar',
+        data: {
+            labels: [/*[[${topTutoresLabels}]]*/],
+            datasets: [{ label: 'Tutorías', data: [/*[[${topTutoresData}]]*/], backgroundColor: '#27ae60', borderRadius: 6 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } }
+    });
+    </script>
 </body>
-
 </html>

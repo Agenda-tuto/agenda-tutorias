@@ -1,17 +1,20 @@
 package com.example.agenda_tutoria.controller;
 
 import com.example.agenda_tutoria.model.Notificacion;
+import com.example.agenda_tutoria.model.Pago;
 import com.example.agenda_tutoria.model.SolicitudRetiro;
 import com.example.agenda_tutoria.model.Tutoria;
 import com.example.agenda_tutoria.model.Usuario;
 import com.example.agenda_tutoria.repository.NotificacionRepository;
+import com.example.agenda_tutoria.repository.PagoRepository;
 import com.example.agenda_tutoria.repository.SolicitudRetiroRepository;
 import com.example.agenda_tutoria.repository.TutoriaRepository;
 import com.example.agenda_tutoria.repository.UsuarioRepository;
 import com.example.agenda_tutoria.service.NotificacionService;
 import com.example.agenda_tutoria.service.PagoService;
 import jakarta.transaction.Transactional;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,14 +31,62 @@ public class AdminController {
     @Autowired private TutoriaRepository tutoriaRepository;
     @Autowired private NotificacionService notificacionService;
     @Autowired private NotificacionRepository notificacionRepository;
+    @Autowired private PagoRepository pagoRepository;
     @Autowired private SolicitudRetiroRepository solicitudRetiroRepository;
     @Autowired private PagoService pagoService;
 
     // ───────────────────────── DASHBOARD ─────────────────────────
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
-        model.addAttribute("totalUsuarios", usuarioRepository.count());
-        model.addAttribute("totalTutorias", tutoriaRepository.count());
+        long totalUsers = usuarioRepository.count();
+        long totalTutorias = tutoriaRepository.count();
+        long totalEstudiantes = usuarioRepository.findByRol("ESTUDIANTE").size();
+        long totalProfesores = usuarioRepository.findByRol("PROFESOR").size();
+        List<Tutoria> todas = tutoriaRepository.findAll();
+
+        // Tutorías por estado (pie chart)
+        Map<Tutoria.Estado, Long> porEstado = todas.stream()
+                .collect(Collectors.groupingBy(Tutoria::getEstado, Collectors.counting()));
+        model.addAttribute("estadosLabels", porEstado.keySet().stream().map(Enum::name).toList());
+        model.addAttribute("estadosData", porEstado.values().stream().toList());
+
+        // Ingresos por mes (bar chart)
+        List<Pago> pagos = pagoRepository.findAll().stream()
+                .filter(p -> p.getTipo() == Pago.Tipo.PAGO || p.getTipo() == Pago.Tipo.INGRESO)
+                .collect(Collectors.toList());
+        Map<String, Double> ingresosPorMes = pagos.stream()
+                .filter(p -> p.getFecha() != null)
+                .collect(Collectors.groupingBy(
+                        p -> String.format("%d-%02d", p.getFecha().getYear(), p.getFecha().getMonthValue()),
+                        Collectors.summingDouble(Pago::getMonto)));
+        var ingresosSorted = new TreeMap<>(ingresosPorMes);
+        model.addAttribute("ingresosLabels", ingresosSorted.keySet().stream().toList());
+        model.addAttribute("ingresosData", ingresosSorted.values().stream().toList());
+
+        // Tutores más activos (bar chart)
+        Map<String, Long> tutoriasPorProf = todas.stream()
+                .filter(t -> t.getProfesorId() != null)
+                .collect(Collectors.groupingBy(Tutoria::getProfesorId, Collectors.counting()));
+        List<String> topTutores = tutoriasPorProf.entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(5)
+                .map(e -> {
+                    Usuario u = usuarioRepository.findById(e.getKey()).orElse(null);
+                    return u != null ? u.getNombre() : "Desconocido";
+                })
+                .collect(Collectors.toList());
+        List<Long> topTutoresData = tutoriasPorProf.entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(5)
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
+        model.addAttribute("topTutoresLabels", topTutores);
+        model.addAttribute("topTutoresData", topTutoresData);
+
+        model.addAttribute("totalUsuarios", totalUsers);
+        model.addAttribute("totalTutorias", totalTutorias);
+        model.addAttribute("totalEstudiantes", totalEstudiantes);
+        model.addAttribute("totalProfesores", totalProfesores);
         model.addAttribute("solicitudesPendientes",
                 usuarioRepository.findByEstadoSolicitudTutor("PENDIENTE").size());
         return "admin/dashboard";

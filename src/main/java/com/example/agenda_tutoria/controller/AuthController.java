@@ -76,6 +76,8 @@ public class AuthController {
         model.addAttribute("correo", correo);
         if (error != null) model.addAttribute("error", "Código incorrecto. Inténtalo de nuevo.");
         if (reenviado != null) model.addAttribute("reenviado", "Código reenviado. Revisa tu correo.");
+        usuarioRepository.findByCorreo(correo).ifPresent(u ->
+            model.addAttribute("codigoDemo", u.getCodigoVerificacion()));
         return "verificar";
     }
 

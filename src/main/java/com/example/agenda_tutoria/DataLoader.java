@@ -215,7 +215,7 @@ public class DataLoader implements CommandLineRunner {
             }
             // Siempre reseedear si hay tutorías pero son menos de 15,000
             // (cubre casos de seed parcial por reinicio de Railway)
-            if (totalTutorias < 100 || reseedNeeded || (totalTutorias >= 100 && totalTutorias < 15000)) {
+            if (totalTutorias < 100 || reseedNeeded || (totalTutorias >= 100 && totalTutorias < 5000)) {
                 System.out.println("🗑️ Limpiando datos antiguos para reseed...");
                 historialEstadoRepository.deleteAll();
                 pagoRepository.deleteAll();
@@ -232,8 +232,8 @@ public class DataLoader implements CommandLineRunner {
     }
 
     private void seedMassiveData(List<Usuario> estudiantes, List<Usuario> profesores) {
-        int target = 15000;
-        int batchSize = 200;
+        int target = 5000;
+        int batchSize = 100;
         List<Tutoria> tutorias = new ArrayList<>(batchSize);
         List<Pago> pagos = new ArrayList<>(batchSize);
         List<HistorialEstado> historiales = new ArrayList<>(batchSize);

@@ -3,11 +3,13 @@ package com.example.agenda_tutoria.controller;
 import com.example.agenda_tutoria.model.Notificacion;
 import com.example.agenda_tutoria.model.Pago;
 import com.example.agenda_tutoria.model.SolicitudRetiro;
+import com.example.agenda_tutoria.model.Transaccion;
 import com.example.agenda_tutoria.model.Tutoria;
 import com.example.agenda_tutoria.model.Usuario;
 import com.example.agenda_tutoria.repository.NotificacionRepository;
 import com.example.agenda_tutoria.repository.PagoRepository;
 import com.example.agenda_tutoria.repository.SolicitudRetiroRepository;
+import com.example.agenda_tutoria.repository.TransaccionRepository;
 import com.example.agenda_tutoria.repository.TutoriaRepository;
 import com.example.agenda_tutoria.repository.UsuarioRepository;
 import com.example.agenda_tutoria.service.NotificacionService;
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -34,6 +37,7 @@ public class AdminController {
     @Autowired private PagoRepository pagoRepository;
     @Autowired private SolicitudRetiroRepository solicitudRetiroRepository;
     @Autowired private PagoService pagoService;
+    @Autowired private TransaccionRepository transaccionRepository;
 
     // ───────────────────────── DASHBOARD ─────────────────────────
     @GetMapping("/dashboard")
@@ -42,6 +46,7 @@ public class AdminController {
         long totalTutorias = tutoriaRepository.count();
         long totalEstudiantes = usuarioRepository.findByRol("ESTUDIANTE").size();
         long totalProfesores = usuarioRepository.findByRol("PROFESOR").size();
+        long totalAdmins = usuarioRepository.findByRol("ADMIN").size();
         List<Tutoria> todas = tutoriaRepository.findAll();
 
         // Tutorías por estado (pie chart)
@@ -63,7 +68,24 @@ public class AdminController {
         model.addAttribute("ingresosLabels", ingresosSorted.keySet().stream().toList());
         model.addAttribute("ingresosData", ingresosSorted.values().stream().toList());
 
-        // Tutores más activos (bar chart)
+        // Tutorías por mes (bar chart)
+        Map<String, Long> tutoriasPorMes = todas.stream()
+                .filter(t -> t.getFechaHora() != null)
+                .collect(Collectors.groupingBy(
+                        t -> String.format("%d-%02d", t.getFechaHora().getYear(), t.getFechaHora().getMonthValue()),
+                        Collectors.counting()));
+        var tutoriasMesSorted = new TreeMap<>(tutoriasPorMes);
+        model.addAttribute("tutoriasMesLabels", tutoriasMesSorted.keySet().stream().toList());
+        model.addAttribute("tutoriasMesData", tutoriasMesSorted.values().stream().toList());
+
+        // Transacciones por tipo (horizontal bar)
+        List<Transaccion> todasTx = transaccionRepository.findAll();
+        Map<Transaccion.Tipo, Long> txPorTipo = todasTx.stream()
+                .collect(Collectors.groupingBy(Transaccion::getTipo, Collectors.counting()));
+        model.addAttribute("transaccionesLabels", txPorTipo.keySet().stream().map(Enum::name).toList());
+        model.addAttribute("transaccionesData", txPorTipo.values().stream().toList());
+
+        // Tutores más activos (horizontal bar)
         Map<String, Long> tutoriasPorProf = todas.stream()
                 .filter(t -> t.getProfesorId() != null)
                 .collect(Collectors.groupingBy(Tutoria::getProfesorId, Collectors.counting()));
@@ -83,12 +105,21 @@ public class AdminController {
         model.addAttribute("topTutoresLabels", topTutores);
         model.addAttribute("topTutoresData", topTutoresData);
 
+        // Últimas 5 tutorías
+        List<Tutoria> ultimasTutorias = tutoriaRepository.findAll(
+                Sort.by(Sort.Direction.DESC, "fechaHora")).stream().limit(5).toList();
+        model.addAttribute("ultimasTutorias", ultimasTutorias);
+
         model.addAttribute("totalUsuarios", totalUsers);
         model.addAttribute("totalTutorias", totalTutorias);
         model.addAttribute("totalEstudiantes", totalEstudiantes);
         model.addAttribute("totalProfesores", totalProfesores);
+        model.addAttribute("totalAdmins", totalAdmins);
         model.addAttribute("solicitudesPendientes",
                 usuarioRepository.findByEstadoSolicitudTutor("PENDIENTE").size());
+
+        double totalIngresos = pagos.stream().mapToDouble(Pago::getMonto).sum();
+        model.addAttribute("totalIngresos", totalIngresos);
         return "admin/dashboard";
     }
 

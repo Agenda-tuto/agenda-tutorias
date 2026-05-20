@@ -9,157 +9,353 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <link th:href="@{/css/styles.css}" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        .kpi-card {
+            background: white; border-radius: 14px; padding: 22px 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06); display: flex;
+            align-items: center; gap: 18px; transition: transform .15s, box-shadow .15s;
+            border: 1px solid #eef0f4;
+        }
+        .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.09); }
+        .kpi-icon {
+            width: 54px; height: 54px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; flex-shrink: 0;
+        }
+        .kpi-icon.blue { background: #eaf4fd; color: #1a5276; }
+        .kpi-icon.green { background: #eafaf1; color: #1e8449; }
+        .kpi-icon.orange { background: #fef9e7; color: #d35400; }
+        .kpi-icon.purple { background: #f0e6ff; color: #6c3483; }
+        .kpi-icon.teal { background: #e8f8f5; color: #117864; }
+        .kpi-num { font-size: 1.9rem; font-weight: 800; color: #1a3a5c; line-height: 1.1; }
+        .kpi-label { font-size: .84rem; color: #7f8c8d; margin: 0; }
+        .chart-card {
+            background: white; border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            overflow: hidden; border: 1px solid #eef0f4;
+        }
+        .chart-header {
+            padding: 16px 20px; border-bottom: 1px solid #f0f2f5;
+            font-weight: 700; font-size: .92rem; color: #1a3a5c;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .chart-body { padding: 16px; }
+        .activity-item {
+            display: flex; align-items: flex-start; gap: 14px;
+            padding: 14px 0; border-bottom: 1px solid #f4f6f9;
+        }
+        .activity-item:last-child { border-bottom: none; }
+        .activity-icon {
+            width: 36px; height: 36px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: .9rem; flex-shrink: 0;
+        }
+        .activity-text { font-size: .88rem; color: #2c3e50; margin: 0; }
+        .activity-time { font-size: .76rem; color: #95a5a6; }
+        .quick-card {
+            background: white; border-radius: 14px; padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #eef0f4;
+            transition: transform .15s, box-shadow .15s;
+        }
+        .quick-card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.09); }
+        .btn-chart-refresh {
+            font-size: .76rem; color: #7f8c8d; background: transparent;
+            border: 1px solid #e0e4e8; border-radius: 8px;
+            padding: 4px 12px; cursor: pointer; transition: all .15s;
+        }
+        .btn-chart-refresh:hover { background: #f4f6f9; border-color: #ccc; }
+    </style>
 </head>
 <body>
-   <nav class="navbar-top navbar-top-admin" aria-label="Panel de administración">
-  <div class="navbar-left">
-    <a th:href="@{/admin/dashboard}" class="navbar-brand" aria-label="Inicio admin">
-      <img th:src="@{/img/logo.png}" alt="Comfenalco" onerror="this.style.display='none'">
-      <span class="brand-role-tag">Admin</span>
-    </a>
-    <div class="navbar-sep-v"></div>
-    <nav class="navbar-nav-links">
-      <a th:href="@{/admin/dashboard}" class="nav-link">Dashboard</a>
-      <a th:href="@{/admin/usuarios}" class="nav-link">
-        <i class="bi bi-people"></i> Usuarios
-      </a>
-      <a th:href="@{/admin/tutorias}" class="nav-link">
-        <i class="bi bi-calendar3"></i> Tutorías
-      </a>
-      <a th:href="@{/admin/retiros}" class="nav-link">
-        <i class="bi bi-cash-coin"></i> Retiros
-      </a>
-      <a th:href="@{/admin/solicitudes-tutor}" class="nav-link">
-        <i class="bi bi-person-check"></i> Solicitudes
-        <span th:if="${solicitudesPendientes > 0}" class="nav-link-badge" th:text="${solicitudesPendientes}"></span>
-      </a>
-    </nav>
-  </div>
-  <div class="navbar-right">
-    <a th:href="@{/logout}" class="btn-nav-danger-sm">
-      <i class="bi bi-box-arrow-right"></i> Salir
-    </a>
-  </div>
+
+<!-- ═══ NAVBAR ═══ -->
+<nav class="navbar-top navbar-top-admin" aria-label="Panel de administración">
+    <div class="navbar-left">
+        <a th:href="@{/admin/dashboard}" class="navbar-brand" aria-label="Inicio admin">
+            <img th:src="@{/img/logo.png}" alt="Comfenalco" onerror="this.style.display='none'">
+            <span class="brand-role-tag">Admin</span>
+        </a>
+        <div class="navbar-sep-v"></div>
+        <nav class="navbar-nav-links">
+            <a th:href="@{/admin/dashboard}" class="nav-link active">Dashboard</a>
+            <a th:href="@{/admin/usuarios}" class="nav-link"><i class="bi bi-people"></i> Usuarios</a>
+            <a th:href="@{/admin/tutorias}" class="nav-link"><i class="bi bi-calendar3"></i> Tutorías</a>
+            <a th:href="@{/admin/retiros}" class="nav-link"><i class="bi bi-cash-coin"></i> Retiros</a>
+            <a th:href="@{/admin/solicitudes-tutor}" class="nav-link">
+                <i class="bi bi-person-check"></i> Solicitudes
+                <span th:if="${solicitudesPendientes > 0}" class="nav-link-badge" th:text="${solicitudesPendientes}"></span>
+            </a>
+        </nav>
+    </div>
+    <div class="navbar-right">
+        <a th:href="@{/logout}" class="btn-nav-danger-sm"><i class="bi bi-box-arrow-right"></i> Salir</a>
+    </div>
 </nav>
-    <div class="container-fluid px-4 py-4">
-        <div class="mb-4">
-            <h2 style="font-family:'Merriweather',serif; color:var(--azul); font-size:1.5rem;">Panel de administración</h2>
-            <p style="color:#7f8c8d; margin:0;">Gestiona usuarios, tutores y tutorías de la plataforma</p>
+
+<!-- ═══ CONTENIDO ═══ -->
+<div class="container-fluid px-4 py-4">
+
+    <!-- Título -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 style="font-family:'Merriweather',serif; color:#1a3a5c; font-size:1.4rem; margin:0;">Panel de administración</h2>
+            <p style="color:#7f8c8d; margin:4px 0 0 0; font-size:.9rem;">Resumen general de la plataforma</p>
         </div>
-        <!-- Stats -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-3 col-6">
-                <div class="stat-card">
-                    <div class="stat-icon azul"><i class="bi bi-people-fill"></i></div>
-                    <div class="stat-info">
-                        <h3 th:text="${totalUsuarios}">0</h3>
-                        <p>Total usuarios</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="stat-card">
-                    <div class="stat-icon verde"><i class="bi bi-calendar-check"></i></div>
-                    <div class="stat-info">
-                        <h3 th:text="${totalTutorias}">0</h3>
-                        <p>Total tutorías</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="stat-card">
-                    <div class="stat-icon azul-claro"><i class="bi bi-person-badge"></i></div>
-                    <div class="stat-info">
-                        <h3 th:text="${totalProfesores}">0</h3>
-                        <p>Tutores</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="stat-card">
-                    <div class="stat-icon naranja"><i class="bi bi-hourglass-split"></i></div>
-                    <div class="stat-info">
-                        <h3 th:text="${solicitudesPendientes}">0</h3>
-                        <p>Solicitudes pendientes</p>
-                    </div>
+        <div style="display:flex; gap:8px;">
+            <a th:href="@{/admin/usuarios}" class="btn-primario" style="padding:9px 18px; font-size:.85rem;">
+                <i class="bi bi-plus-lg"></i> Gestionar
+            </a>
+        </div>
+    </div>
+
+    <!-- ═══ KPI CARDS ═══ -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-6">
+            <div class="kpi-card">
+                <div class="kpi-icon blue"><i class="bi bi-people-fill"></i></div>
+                <div>
+                    <div class="kpi-num" th:text="${totalUsuarios}">0</div>
+                    <p class="kpi-label">Total usuarios</p>
                 </div>
             </div>
         </div>
-        <!-- Charts -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-4">
-                <div class="card-institucional">
-                    <div class="card-header-azul"><i class="bi bi-pie-chart me-2"></i>Tutorías por estado</div>
-                    <div class="p-3" style="height:280px;">
-                        <canvas id="chartEstados"></canvas>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card-institucional">
-                    <div class="card-header-azul"><i class="bi bi-bar-chart me-2"></i>Ingresos por mes</div>
-                    <div class="p-3" style="height:280px;">
-                        <canvas id="chartIngresos"></canvas>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card-institucional">
-                    <div class="card-header-azul"><i class="bi bi-trophy me-2"></i>Tutores más activos</div>
-                    <div class="p-3" style="height:280px;">
-                        <canvas id="chartTopTutores"></canvas>
-                    </div>
+        <div class="col-md-3 col-6">
+            <div class="kpi-card">
+                <div class="kpi-icon green"><i class="bi bi-calendar-check"></i></div>
+                <div>
+                    <div class="kpi-num" th:text="${totalTutorias}">0</div>
+                    <p class="kpi-label">Total tutorías</p>
                 </div>
             </div>
         </div>
-        <!-- Accesos rápidos -->
-        <div class="row g-3">
-            <div class="col-md-6">
-                <div class="card-institucional">
-                    <div class="card-header-azul"><i class="bi bi-people me-2"></i>Gestión de usuarios</div>
-                    <div class="p-4">
-                        <p style="color:#7f8c8d; font-size:0.92rem; margin-bottom:16px;">Visualiza y administra todos los usuarios registrados en la plataforma.</p>
-                        <a th:href="@{/admin/usuarios}" class="btn-primario"><i class="bi bi-arrow-right-circle"></i>Ver usuarios</a>
-                    </div>
+        <div class="col-md-3 col-6">
+            <div class="kpi-card">
+                <div class="kpi-icon purple"><i class="bi bi-person-badge"></i></div>
+                <div>
+                    <div class="kpi-num" th:text="${totalProfesores}">0</div>
+                    <p class="kpi-label">Tutores activos</p>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="card-institucional">
-                    <div class="card-header-azul"><i class="bi bi-person-check me-2"></i>Solicitudes de tutor</div>
-                    <div class="p-4">
-                        <p style="color:#7f8c8d; font-size:0.92rem; margin-bottom:16px;">Revisa y aprueba las solicitudes de estudiantes que quieren ser tutores.</p>
-                        <a th:href="@{/admin/solicitudes-tutor}" class="btn-primario"><i class="bi bi-arrow-right-circle"></i>Ver solicitudes</a>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="kpi-card">
+                <div class="kpi-icon orange"><i class="bi bi-hourglass-split"></i></div>
+                <div>
+                    <div class="kpi-num" th:text="${solicitudesPendientes}">0</div>
+                    <p class="kpi-label">Solicitudes pendientes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ CHARTS ROW 1 ═══ -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="chart-card">
+                <div class="chart-header"><i class="bi bi-bar-chart-fill" style="color:#1a5276;"></i> Tutorías por mes</div>
+                <div class="chart-body" style="height:260px;"><canvas id="chartTutoriasMes"></canvas></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="chart-card">
+                <div class="chart-header"><i class="bi bi-people" style="color:#6c3483;"></i> Usuarios por rol</div>
+                <div class="chart-body" style="height:260px;"><canvas id="chartRol"></canvas></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="chart-card">
+                <div class="chart-header"><i class="bi bi-pie-chart" style="color:#d35400;"></i> Estado de tutorías</div>
+                <div class="chart-body" style="height:260px;"><canvas id="chartEstadoPie"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ CHARTS ROW 2 ═══ -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="chart-card">
+                <div class="chart-header"><i class="bi bi-arrow-left-right" style="color:#117864;"></i> Transacciones por tipo</div>
+                <div class="chart-body" style="height:240px;"><canvas id="chartTransacciones"></canvas></div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="chart-card">
+                <div class="chart-header"><i class="bi bi-trophy" style="color:#1e8449;"></i> Top tutores</div>
+                <div class="chart-body" style="height:240px;"><canvas id="chartTopTutores"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ ÚLTIMAS TUTORÍAS + ACTIVIDAD ═══ -->
+    <div class="row g-3">
+        <div class="col-md-7">
+            <div class="chart-card">
+                <div class="chart-header"><i class="bi bi-list-ul" style="color:#1a3a5c;"></i> Últimas tutorías</div>
+                <div style="overflow-x:auto;">
+                    <table class="table" style="margin:0; font-size:.88rem;">
+                        <thead style="background:#f8f9fa; color:#1a3a5c; font-size:.78rem; text-transform:uppercase; letter-spacing:.4px;">
+                            <tr><th>Estudiante</th><th>Tutor</th><th>Estado</th><th>Fecha</th><th>Valor</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="t : ${ultimasTutorias}">
+                                <td th:text="${t.estudianteNombre}">—</td>
+                                <td th:text="${t.profesorNombre}">—</td>
+                                <td>
+                                    <span th:classappend="|badge-estado badge-${#strings.toLowerCase(t.estado.name())}|"
+                                          th:text="${t.estado.name()}">PENDIENTE</span>
+                                </td>
+                                <td th:text="${t.fechaHora != null} ? ${#temporals.format(t.fechaHora, 'dd/MM HH:mm')} : '—'">—</td>
+                                <td style="font-weight:700;" th:text="|$${#numbers.formatDecimal(t.precioTotal, 0, 'COMMA', 0, 'POINT')}|">$0</td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(ultimasTutorias)}">
+                                <td colspan="5" style="text-align:center; color:#95a5a6; padding:32px;">No hay tutorías registradas</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="chart-card">
+                <div class="chart-header"><i class="bi bi-activity" style="color:#d35400;"></i> Actividad reciente</div>
+                <div style="padding:16px 20px;">
+                    <div class="activity-item">
+                        <div class="activity-icon" style="background:#eafaf1;color:#1e8449;"><i class="bi bi-person-plus"></i></div>
+                        <div>
+                            <p class="activity-text"><strong th:text="${totalUsuarios}">0</strong> usuarios registrados en la plataforma</p>
+                            <small class="activity-time">Total acumulado</small>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon" style="background:#eaf4fd;color:#1a5276;"><i class="bi bi-calendar-check"></i></div>
+                        <div>
+                            <p class="activity-text"><strong th:text="${totalTutorias}">0</strong> tutorías agendadas</p>
+                            <small class="activity-time">Total acumulado</small>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon" style="background:#fef9e7;color:#d35400;"><i class="bi bi-person-badge"></i></div>
+                        <div>
+                            <p class="activity-text"><strong th:text="${totalProfesores}">0</strong> tutores activos</p>
+                            <small class="activity-time">Brindando sus servicios</small>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon" style="background:#f0e6ff;color:#6c3483;"><i class="bi bi-cash-stack"></i></div>
+                        <div>
+                            <p class="activity-text">$<strong th:text="${#numbers.formatDecimal(totalIngresos, 0, 'COMMA', 0, 'POINT')}">0</strong> en ingresos generados</p>
+                            <small class="activity-time">Por tutorías pagadas</small>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon" style="background:#fdecea;color:#c0392b;"><i class="bi bi-hourglass-split"></i></div>
+                        <div>
+                            <p class="activity-text"><strong th:text="${solicitudesPendientes}">0</strong> solicitudes de tutor pendientes</p>
+                            <small class="activity-time">Esperando revisión</small>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <script>
-    const colores = ['#1a3a5c','#c0392b','#27ae60','#f39c12','#2980b9','#8e44ad','#16a085','#e67e22','#2c3e50','#95a5a6'];
-    new Chart(document.getElementById('chartEstados'), {
-        type: 'pie',
-        data: {
-            labels: [/*[[${estadosLabels}]]*/],
-            datasets: [{ data: [/*[[${estadosData}]]*/], backgroundColor: colores }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } } }
-    });
-    new Chart(document.getElementById('chartIngresos'), {
-        type: 'bar',
-        data: {
-            labels: [/*[[${ingresosLabels}]]*/],
-            datasets: [{ label: 'Ingresos ($)', data: [/*[[${ingresosData}]]*/], backgroundColor: '#1a3a5c', borderRadius: 6 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return '$' + v.toLocaleString(); } } } }, plugins: { legend: { display: false } } }
-    });
-    new Chart(document.getElementById('chartTopTutores'), {
-        type: 'bar',
-        data: {
-            labels: [/*[[${topTutoresLabels}]]*/],
-            datasets: [{ label: 'Tutorías', data: [/*[[${topTutoresData}]]*/], backgroundColor: '#27ae60', borderRadius: 6 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } }
-    });
-    </script>
+
+    <!-- ═══ ACCESOS RÁPIDOS ═══ -->
+    <div class="row g-3 mt-2">
+        <div class="col-md-4">
+            <a th:href="@{/admin/usuarios}" style="text-decoration:none;">
+                <div class="quick-card d-flex align-items-center gap-3">
+                    <div class="kpi-icon blue"><i class="bi bi-people-fill"></i></div>
+                    <div>
+                        <h6 style="margin:0; color:#1a3a5c; font-weight:700;">Usuarios</h6>
+                        <p style="margin:2px 0 0; color:#7f8c8d; font-size:.82rem;">Gestionar todos los usuarios</p>
+                    </div>
+                    <i class="bi bi-chevron-right" style="margin-left:auto; color:#ccc;"></i>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a th:href="@{/admin/solicitudes-tutor}" style="text-decoration:none;">
+                <div class="quick-card d-flex align-items-center gap-3">
+                    <div class="kpi-icon orange"><i class="bi bi-person-check"></i></div>
+                    <div>
+                        <h6 style="margin:0; color:#1a3a5c; font-weight:700;">Solicitudes</h6>
+                        <p style="margin:2px 0 0; color:#7f8c8d; font-size:.82rem;">Revisar nuevos tutores</p>
+                    </div>
+                    <i class="bi bi-chevron-right" style="margin-left:auto; color:#ccc;"></i>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a th:href="@{/admin/retiros}" style="text-decoration:none;">
+                <div class="quick-card d-flex align-items-center gap-3">
+                    <div class="kpi-icon green"><i class="bi bi-cash-coin"></i></div>
+                    <div>
+                        <h6 style="margin:0; color:#1a3a5c; font-weight:700;">Retiros</h6>
+                        <p style="margin:2px 0 0; color:#7f8c8d; font-size:.82rem;">Gestionar solicitudes de retiro</p>
+                    </div>
+                    <i class="bi bi-chevron-right" style="margin-left:auto; color:#ccc;"></i>
+                </div>
+            </a>
+        </div>
+    </div>
+
+</div>
+
+<!-- ═══ CHARTS JS ═══ -->
+<script th:inline="javascript">
+/*<![CDATA[*/
+const COLORS = ['#1a3a5c','#c0392b','#27ae60','#f39c12','#2980b9','#8e44ad','#16a085','#e67e22','#2c3e50','#95a5a6'];
+const CHART_OPTS = { responsive: true, maintainAspectRatio: false };
+
+// 1. Tutorías por mes
+new Chart(document.getElementById('chartTutoriasMes'), {
+    type: 'bar',
+    data: {
+        labels: [[${tutoriasMesLabels}]],
+        datasets: [{ label: 'Tutorías', data: [[${tutoriasMesData}]], backgroundColor: '#1a5276', borderRadius: 6 }]
+    },
+    options: { ...CHART_OPTS, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } }
+});
+
+// 2. Usuarios por rol
+new Chart(document.getElementById('chartRol'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Estudiantes', 'Tutores', 'Administradores'],
+        datasets: [{ data: [[${totalEstudiantes}], [[${totalProfesores}]], [[${totalAdmins}]]], backgroundColor: ['#2980b9','#27ae60','#1a3a5c'] }]
+    },
+    options: { ...CHART_OPTS, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }, cutout: '60%' }
+});
+
+// 3. Estado de tutorías
+new Chart(document.getElementById('chartEstadoPie'), {
+    type: 'pie',
+    data: {
+        labels: [[${estadosLabels}]],
+        datasets: [{ data: [[${estadosData}]], backgroundColor: COLORS }]
+    },
+    options: { ...CHART_OPTS, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
+});
+
+// 4. Transacciones por tipo
+new Chart(document.getElementById('chartTransacciones'), {
+    type: 'bar',
+    data: {
+        labels: [[${transaccionesLabels}]],
+        datasets: [{ label: 'Cantidad', data: [[${transaccionesData}]], backgroundColor: ['#1a5276','#27ae60','#d35400','#8e44ad','#c0392b'], borderRadius: 6 }]
+    },
+    options: { ...CHART_OPTS, indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } }
+});
+
+// 5. Top tutores
+new Chart(document.getElementById('chartTopTutores'), {
+    type: 'bar',
+    data: {
+        labels: [[${topTutoresLabels}]],
+        datasets: [{ label: 'Tutorías', data: [[${topTutoresData}]], backgroundColor: '#1e8449', borderRadius: 6 }]
+    },
+    options: { ...CHART_OPTS, indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } }
+});
+/*]]>*/
+</script>
 </body>
 </html>

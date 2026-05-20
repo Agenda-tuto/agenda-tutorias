@@ -21,11 +21,11 @@ public class TutoriaScheduler {
 
     @Scheduled(fixedRate = 3600000)
     public void expirarTutoriasVencidas() {
+        // Expira solo si pasaron más de 2 horas desde la hora agendada
         List<Tutoria> vencidas = tutoriaRepository
-                .findByFechaHoraBeforeAndEstadoIn(LocalDateTime.now(), List.of(
+                .findByFechaHoraBeforeAndEstadoIn(LocalDateTime.now().minusHours(2), List.of(
                         Tutoria.Estado.PENDIENTE,
                         Tutoria.Estado.ACEPTADA,
-                        Tutoria.Estado.EN_CURSO,
                         Tutoria.Estado.REPROGRAMADA));
 
         for (Tutoria t : vencidas) {

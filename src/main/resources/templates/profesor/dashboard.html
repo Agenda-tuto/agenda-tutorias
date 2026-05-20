@@ -107,6 +107,18 @@
             </div>
         </div>
 
+        <!-- Alerta de sesiones por expirar -->
+        <div th:if="${pendientes > 0}" class="alerta alerta-warning mb-3"
+             style="display:flex; align-items:center; gap:10px;">
+            <i class="bi bi-exclamation-triangle" style="font-size:1.2rem;"></i>
+            <div>
+                <strong style="color:#d35400;">
+                    <span th:text="${pendientes}"></span> solicitude<span th:if="${pendientes != 1}">s</span> pendiente<span th:if="${pendientes != 1}">s</span>
+                </strong>
+                — Acéptalas o recházalas antes de que expiren automáticamente (2h después de la hora agendada).
+            </div>
+        </div>
+
         <!-- Stats -->
         <div class="row g-3 mb-4">
             <div class="col-md-4">

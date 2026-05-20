@@ -303,8 +303,7 @@
 <!-- ═══ CHARTS JS ═══ -->
 <script th:inline="javascript">
 /*<![CDATA[*/
-const COLORS = ['#1a3a5c','#c0392b','#27ae60','#f39c12','#2980b9','#8e44ad','#16a085','#e67e22','#2c3e50','#95a5a6'];
-const CHART_OPTS = { responsive: true, maintainAspectRatio: false };
+const C = ['#1a3a5c','#c0392b','#27ae60','#f39c12','#2980b9','#8e44ad','#16a085','#e67e22','#2c3e50','#95a5a6'];
 
 // 1. Tutorías por mes
 new Chart(document.getElementById('chartTutoriasMes'), {
@@ -313,7 +312,7 @@ new Chart(document.getElementById('chartTutoriasMes'), {
         labels: [[${tutoriasMesLabels}]],
         datasets: [{ label: 'Tutorías', data: [[${tutoriasMesData}]], backgroundColor: '#1a5276', borderRadius: 6 }]
     },
-    options: { ...CHART_OPTS, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } }
+    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } }
 });
 
 // 2. Usuarios por rol
@@ -321,9 +320,9 @@ new Chart(document.getElementById('chartRol'), {
     type: 'doughnut',
     data: {
         labels: ['Estudiantes', 'Tutores', 'Administradores'],
-        datasets: [{ data: [[${totalEstudiantes}], [[${totalProfesores}]], [[${totalAdmins}]]], backgroundColor: ['#2980b9','#27ae60','#1a3a5c'] }]
+        datasets: [{ data: [ [[${totalEstudiantes}]], [[${totalProfesores}]], [[${totalAdmins}]] ], backgroundColor: ['#2980b9','#27ae60','#1a3a5c'] }]
     },
-    options: { ...CHART_OPTS, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }, cutout: '60%' }
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }, cutout: '60%' }
 });
 
 // 3. Estado de tutorías
@@ -331,9 +330,9 @@ new Chart(document.getElementById('chartEstadoPie'), {
     type: 'pie',
     data: {
         labels: [[${estadosLabels}]],
-        datasets: [{ data: [[${estadosData}]], backgroundColor: COLORS }]
+        datasets: [{ data: [[${estadosData}]], backgroundColor: C }]
     },
-    options: { ...CHART_OPTS, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
 });
 
 // 4. Transacciones por tipo
@@ -343,7 +342,7 @@ new Chart(document.getElementById('chartTransacciones'), {
         labels: [[${transaccionesLabels}]],
         datasets: [{ label: 'Cantidad', data: [[${transaccionesData}]], backgroundColor: ['#1a5276','#27ae60','#d35400','#8e44ad','#c0392b'], borderRadius: 6 }]
     },
-    options: { ...CHART_OPTS, indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } }
+    options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } }
 });
 
 // 5. Top tutores
@@ -353,7 +352,7 @@ new Chart(document.getElementById('chartTopTutores'), {
         labels: [[${topTutoresLabels}]],
         datasets: [{ label: 'Tutorías', data: [[${topTutoresData}]], backgroundColor: '#1e8449', borderRadius: 6 }]
     },
-    options: { ...CHART_OPTS, indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } }
+    options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } }
 });
 /*]]>*/
 </script>

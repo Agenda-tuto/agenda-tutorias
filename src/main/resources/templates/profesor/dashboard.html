@@ -212,15 +212,26 @@
                             <td>
                                 <a th:if="${t.estado.name() != 'CANCELADA' and t.estado.name() != 'FINALIZADA'
                                     and t.estado.name() != 'PAGADA' and t.estado.name() != 'NO_ASISTIO'
-                                    and t.estado.name() != 'EXPIRADA'}"
+                                    and t.estado.name() != 'EXPIRADA' and t.estado.name() != 'RECHAZADA'}"
                                     th:href="@{/profesor/tutorias/{id}/gestionar(id=${t.id})}" class="btn-primario"
                                     style="font-size:0.82rem; padding:7px 14px;">
                                     <i class="bi bi-gear"></i> Gestionar
                                 </a>
-                                <span th:if="${t.estado.name() == 'CANCELADA' or t.estado.name() == 'FINALIZADA'
+                                <span th:if="${t.estado.name() == 'EN_REVISION'}"
+                                    style="display:block; font-size:0.75rem; color:#d35400; margin-top:4px;">
+                                    ⏳ Estudiante debe confirmar
+                                </span>
+                                <form th:if="${t.estado.name() == 'CANCELADA' or t.estado.name() == 'FINALIZADA'
                                     or t.estado.name() == 'PAGADA' or t.estado.name() == 'NO_ASISTIO'
-                                    or t.estado.name() == 'EXPIRADA'}"
-                                    style="color:#bbb; font-size:0.85rem;">—</span>
+                                    or t.estado.name() == 'EXPIRADA' or t.estado.name() == 'RECHAZADA'}"
+                                    th:action="@{/profesor/tutorias/{id}/eliminar(id=${t.id})}"
+                                    method="post" style="display:inline;">
+                                    <button type="submit" class="btn-secundario"
+                                        style="font-size:0.78rem; padding:5px 12px; color:#c0392b; border-color:#c0392b;"
+                                        onclick="return confirm('¿Eliminar esta tutoría del historial?')">
+                                        <i class="bi bi-trash3"></i> Eliminar
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                     </tbody>

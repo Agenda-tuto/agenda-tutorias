@@ -1,15 +1,18 @@
 package com.example.agenda_tutoria.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import jakarta.mail.internet.MimeMessage;
 
 @Service
 public class EmailService {
+
+    private static final Logger log = LoggerFactory.getLogger(EmailService.class);
 
     @Autowired
     private JavaMailSender mailSender;
@@ -17,8 +20,8 @@ public class EmailService {
     @Value("${app.mail.from:agendatutorias@gmail.com}")
     private String fromAddress;
 
-    @Async
     public void enviarCodigoVerificacion(String destinatario, String nombre, String codigo) {
+        log.info("Intentando enviar código a {} desde {}", destinatario, fromAddress);
         try {
             MimeMessage mensaje = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mensaje, true, "UTF-8");
@@ -64,9 +67,10 @@ public class EmailService {
 
             helper.setText(html, true);
             mailSender.send(mensaje);
+            log.info("Correo enviado exitosamente a {}", destinatario);
 
         } catch (Exception e) {
-            System.err.println("Error enviando correo: " + e.getMessage());
+            log.error("Error enviando correo a {}: {}", destinatario, e.getMessage(), e);
         }
     }
 
@@ -89,7 +93,7 @@ public class EmailService {
                         <h3 style="color:#1a3a5c;margin-top:0;">%s</h3>
                         <p style="color:#555;line-height:1.6;">Hola %s,</p>
                         <p style="color:#555;line-height:1.6;">%s</p>
-                        <a href="http://localhost:8080/login"
+                        <a href="https://agenda-tutorias-production.up.railway.app/login"
                            style="display:inline-block;background:#c0392b;color:white;
                                   padding:12px 24px;border-radius:10px;text-decoration:none;
                                   font-weight:600;margin-top:16px;">
@@ -106,7 +110,7 @@ public class EmailService {
             mailSender.send(mensaje);
 
         } catch (Exception e) {
-            System.err.println("Error enviando notificación: " + e.getMessage());
+            log.error("Error enviando notificación: {}", e.getMessage(), e);
         }
     }
 }

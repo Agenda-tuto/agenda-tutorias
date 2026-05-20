@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import jakarta.mail.internet.MimeMessage;
 
@@ -20,6 +21,7 @@ public class EmailService {
     @Value("${app.mail.from:agendatutorias@gmail.com}")
     private String fromAddress;
 
+    @Async
     public void enviarCodigoVerificacion(String destinatario, String nombre, String codigo) {
         log.info("Intentando enviar código a {} desde {}", destinatario, fromAddress);
         try {

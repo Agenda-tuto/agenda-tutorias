@@ -46,9 +46,13 @@ public class AuthController {
 
     @PostMapping("/registro")
     public String registrar(@ModelAttribute Usuario usuario, Model model) {
-        if (usuarioRepository.findByCorreo(usuario.getCorreo()).isPresent()) {
-            model.addAttribute("error", "Ya existe una cuenta con ese correo.");
-            return "registro";
+        var existente = usuarioRepository.findByCorreo(usuario.getCorreo());
+        if (existente.isPresent()) {
+            if (existente.get().getCuentaVerificada()) {
+                model.addAttribute("error", "Ya existe una cuenta verificada con ese correo.");
+                return "registro";
+            }
+            usuarioRepository.delete(existente.get());
         }
 
         String codigo = String.format("%06d", new Random().nextInt(999999));

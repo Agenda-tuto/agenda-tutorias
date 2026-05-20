@@ -55,6 +55,9 @@ public class ProfesorController {
         List<Tutoria> todas = tutoriaRepository.findByProfesorId(profesor.getId());
         long pendientes = todas.stream().filter(t -> t.getEstado() == Tutoria.Estado.PENDIENTE).count();
         long aceptadas = todas.stream().filter(t -> t.getEstado() == Tutoria.Estado.ACEPTADA).count();
+        long porVencer = todas.stream().filter(t -> t.getEstado() == Tutoria.Estado.PENDIENTE
+                || t.getEstado() == Tutoria.Estado.ACEPTADA
+                || t.getEstado() == Tutoria.Estado.REPROGRAMADA).count();
         long noLeidas = notificacionRepository
                 .countByUsuarioIdAndLeidaFalse(profesor.getId());
 
@@ -79,6 +82,7 @@ public class ProfesorController {
         model.addAttribute("totalTutorias", todas.size());
         model.addAttribute("pendientes", pendientes);
         model.addAttribute("aceptadas", aceptadas);
+        model.addAttribute("porVencer", porVencer);
         model.addAttribute("noLeidas", noLeidas);
         model.addAttribute("estadosLabels", porEstado.keySet().stream().map(Enum::name).toList());
         model.addAttribute("estadosData", porEstado.values().stream().toList());

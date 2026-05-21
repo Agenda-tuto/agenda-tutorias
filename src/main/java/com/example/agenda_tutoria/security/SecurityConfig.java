@@ -71,6 +71,13 @@ public class SecurityConfig {
                         return nuevo;
                     });
 
+            // Si el usuario ya existía pero NO estaba verificado (ej. registro manual fallido),
+            // se marca como verificado automáticamente al autenticarse con Google
+            if (Boolean.FALSE.equals(usuario.getCuentaVerificada())) {
+                usuario.setCuentaVerificada(true);
+                usuarioRepository.save(usuario);
+            }
+
             // Devolver OAuth2User con el rol correcto de MongoDB
             return new DefaultOAuth2User(
                     List.of(new SimpleGrantedAuthority("ROLE_" + usuario.getRol())),
